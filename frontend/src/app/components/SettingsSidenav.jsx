@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from '@inertiajs/react'
 
-export default function SettingsSidenav({ activeSection = 'general', slaEnabled = false }) {
+export default function SettingsSidenav({ activeSection = 'general' }) {
   const [teamExpanded, setTeamExpanded] = useState(activeSection?.startsWith('team'))
   const [emailsExpanded, setEmailsExpanded] = useState(activeSection?.startsWith('emails'))
   const [slaExpanded, setSlaExpanded] = useState(activeSection?.startsWith('sla'))
@@ -27,8 +27,6 @@ export default function SettingsSidenav({ activeSection = 'general', slaEnabled 
 
   const slaSections = [
     { id: 'sla-policies', label: 'SLA Policies', href: '/settings/sla/policies/', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'sla-business-hours', label: 'Business Hours', href: '/settings/sla/business-hours/', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'sla-holidays', label: 'Holidays', href: '/settings/sla/holidays/', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
   ]
 
   return (
@@ -166,40 +164,22 @@ export default function SettingsSidenav({ activeSection = 'general', slaEnabled 
 
           {slaExpanded && (
             <div className="ml-4 mt-1 space-y-1">
-              {slaSections.map((section) => {
-                const isDisabled = !slaEnabled && (section.id === 'sla-business-hours' || section.id === 'sla-holidays')
-                
-                return isDisabled ? (
-                  <div
-                    key={section.id}
-                    className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-400 cursor-not-allowed opacity-50"
-                    title="Enable SLA to access this feature"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d={section.icon} />
-                    </svg>
-                    <span className="truncate">{section.label}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                ) : (
-                  <Link
-                    key={section.id}
-                    href={section.href}
-                    className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
-                      activeSection === section.id 
-                        ? 'bg-[#4a154b]/10 text-[#4a154b] font-medium' 
-                        : 'hover:bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d={section.icon} />
-                    </svg>
-                    <span className="truncate">{section.label}</span>
-                  </Link>
-                )
-              })}
+              {slaSections.map((section) => (
+                <Link
+                  key={section.id}
+                  href={section.href}
+                  className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md text-sm ${
+                    activeSection === section.id 
+                      ? 'bg-[#4a154b]/10 text-[#4a154b] font-medium' 
+                      : 'hover:bg-gray-50 text-gray-700'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={section.icon} />
+                  </svg>
+                  <span className="truncate">{section.label}</span>
+                </Link>
+              ))}
             </div>
           )}
         </div>

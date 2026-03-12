@@ -57,6 +57,4 @@ urlpatterns = [
     path('settings/sla/policies/', views.sla_policies, name='sla_policies'),
     path('settings/sla/policies/add/', views.sla_policy_add, name='sla_policy_add'),
     path('settings/sla/policies/<int:policy_id>/edit/', views.sla_policy_edit, name='sla_policy_edit'),
-    path('settings/sla/business-hours/', views.sla_business_hours, name='sla_business_hours'),
-    path('settings/sla/holidays/', views.sla_holidays, name='sla_holidays'),
 ]

@@ -4,7 +4,6 @@ import {
   Home, 
   Ticket, 
   BookOpen, 
-  Building2, 
   BarChart3, 
   Settings,
   LogOut,
@@ -18,7 +17,6 @@ const icons = {
   home: <Home className={iconClass} />,
   tickets: <Ticket className={iconClass} />,
   knowledgebase: <BookOpen className={iconClass} />,
-  building: <Building2 className={iconClass} />,
   chart: <BarChart3 className={iconClass} />,
   settings: <Settings className={iconClass} />,
 }
@@ -79,7 +77,6 @@ export default function SidebarNav({ active = 'people' }) {
     { key: 'home', href: '/dashboard/', title: 'Home' },
     { key: 'tickets', href: '/tickets', title: 'Tickets' },
     { key: 'knowledgebase', href: '/knowledgebase', title: 'Knowledge Base' },
-    { key: 'building', href: '/organizations', title: 'Organizations' },
     { key: 'chart', href: '/reports', title: 'Reports' },
     { key: 'settings', href: '/settings', title: 'Settings' },
   ]

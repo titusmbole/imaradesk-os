@@ -28,8 +28,6 @@ export default function SLAPolicies({ policies = [] }) {
     first_response_time: 60,
     resolution_time: 240,
     status: 'active',
-    apply_business_hours: false,
-    apply_holidays: false,
     apply_to_new_tickets: false,
     send_escalation_emails: false,
     auto_assign_on_breach: false,
@@ -165,8 +163,6 @@ export default function SLAPolicies({ policies = [] }) {
       first_response_time: policy.first_response_minutes,
       resolution_time: policy.resolution_time_minutes,
       status: policy.status,
-      apply_business_hours: policy.apply_business_hours ?? false,
-      apply_holidays: policy.apply_holidays ?? false,
       apply_to_new_tickets: policy.apply_to_new_tickets ?? false,
       send_escalation_emails: policy.send_escalation_emails ?? false,
       auto_assign_on_breach: policy.auto_assign_on_breach ?? false,
@@ -216,8 +212,6 @@ export default function SLAPolicies({ policies = [] }) {
       first_response_time: 60,
       resolution_time: 240,
       status: 'active',
-      apply_business_hours: false,
-      apply_holidays: false,
       apply_to_new_tickets: false,
       send_escalation_emails: false,
       auto_assign_on_breach: false,
@@ -505,39 +499,10 @@ export default function SLAPolicies({ policies = [] }) {
                     </div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">SLA Tracking is Disabled</h3>
                     <p className="text-gray-600 mb-6">
-                      Enable SLA tracking above to access powerful features including:
+                      Enable SLA tracking above to define response and resolution time targets for different ticket priorities.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left mb-6">
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <h4 className="font-semibold text-gray-900">SLA Policies</h4>
-                        </div>
-                        <p className="text-sm text-gray-600">Define response and resolution time targets for different priorities</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <h4 className="font-semibold text-gray-900">Business Hours</h4>
-                        </div>
-                        <p className="text-sm text-gray-600">Set your working hours to calculate SLA times accurately</p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <h4 className="font-semibold text-gray-900">Holidays</h4>
-                        </div>
-                        <p className="text-sm text-gray-600">Manage holidays when SLA timers should pause automatically</p>
-                      </div>
-                    </div>
                     <p className="text-sm text-gray-500">
-                      Once enabled, you'll be able to create policies, configure business hours, and manage holidays to ensure accurate SLA tracking.
+                      Once enabled, you'll be able to create SLA policies to ensure accurate ticket response time tracking.
                     </p>
                   </div>
                 </div>
@@ -645,32 +610,6 @@ export default function SLAPolicies({ policies = [] }) {
                   placeholder="Select status"
                   allowClear={false}
                 />
-              </div>
-              
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.apply_business_hours}
-                    onChange={(e) => setFormData({ ...formData, apply_business_hours: e.target.checked })}
-                    className="w-4 h-4 text-[#4a154b] border-gray-300 rounded focus:ring-[#4a154b]"
-                  />
-                  <span className="text-sm text-gray-700">Apply business hours</span>
-                </label>
-                <p className="text-xs text-gray-500 mt-1 ml-6">Only count time during configured business hours</p>
-              </div>
-              
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.apply_holidays}
-                    onChange={(e) => setFormData({ ...formData, apply_holidays: e.target.checked })}
-                    className="w-4 h-4 text-[#4a154b] border-gray-300 rounded focus:ring-[#4a154b]"
-                  />
-                  <span className="text-sm text-gray-700">Apply holidays</span>
-                </label>
-                <p className="text-xs text-gray-500 mt-1 ml-6">Exclude holidays from SLA time calculation</p>
               </div>
               
               <div>
