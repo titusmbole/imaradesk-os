@@ -397,7 +397,7 @@ def telegram_webhook(request, schema_name):
     Creates tickets from new chats and adds comments from replies.
     """
     try:
-        from django_tenants.utils import schema_context
+        from shared.utilities.tenant_compat import schema_context
         
         with schema_context(schema_name):
             from modules.settings.models import TelegramIntegration, TelegramChat

@@ -4,17 +4,17 @@ from .models import Client, Domain
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    list_display = ['name', 'schema_name', 'created_on', 'is_active']
-    list_filter = ['is_active', 'created_on']
-    search_fields = ['name', 'schema_name', 'description']
-    readonly_fields = ['schema_name', 'created_on']
+    list_display = ['name', 'created_on', 'is_active', 'is_verified']
+    list_filter = ['is_active', 'is_verified', 'created_on']
+    search_fields = ['name', 'description']
+    readonly_fields = ['created_on', 'verified_at']
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'schema_name', 'description')
+            'fields': ('name', 'description')
         }),
         ('Status', {
-            'fields': ('is_active', 'created_on')
+            'fields': ('is_active', 'is_verified', 'verified_at', 'created_on')
         }),
     )
 

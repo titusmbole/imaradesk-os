@@ -26,7 +26,7 @@ from email.utils import parseaddr, parsedate_to_datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from django_tenants.utils import schema_context, get_tenant_model
+from shared.utilities.tenant_compat import schema_context, get_tenant_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()

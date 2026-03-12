@@ -3,7 +3,7 @@ Celery tasks for ticket email notifications.
 These tasks handle sending emails in the background to improve UI responsiveness.
 """
 from celery import shared_task
-from django_tenants.utils import schema_context
+from shared.utilities.tenant_compat import schema_context
 import logging
 
 logger = logging.getLogger(__name__)

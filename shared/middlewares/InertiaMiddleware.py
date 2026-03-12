@@ -1,5 +1,6 @@
 from inertia import share
 from django.middleware.csrf import get_token
+from django.conf import settings
 
 def inertia_share(get_response):
     """
@@ -9,14 +10,12 @@ def inertia_share(get_response):
         # Ensure CSRF token is generated and available
         csrf_token = get_token(request)
         
-        # Share tenant/business info
-        if hasattr(request, 'tenant') and request.tenant:
-            share(request, tenant={
-                'name': request.tenant.name or request.tenant.schema_name,
-                'schema': request.tenant.schema_name,
-            })
-        else:
-            share(request, tenant={'name': 'ImaraDesk', 'schema': 'public'})
+        # Share app/business info - single tenant mode
+        app_name = getattr(settings, 'APP_NAME', 'ImaraDesk')
+        share(request, tenant={
+            'name': app_name,
+            'schema': 'default',
+        })
         
         # Share auth data with all Inertia responses
         if request.user.is_authenticated:

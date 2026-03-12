@@ -9,7 +9,7 @@ This command:
 """
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from django_tenants.utils import schema_context, get_tenant_model
+from shared.utilities.tenant_compat import schema_context, get_tenant_model
 from modules.email_to_ticket.utils import OutlookEmailReader, group_outlook_emails_into_threads
 from modules.email_to_ticket.models import OutlookMailbox, ProcessedEmail
 

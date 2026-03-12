@@ -148,7 +148,7 @@ def slack_oauth_callback(request):
 
             if token_response.get('ok'):
                 try:
-                    from django_tenants.utils import schema_context
+                    from shared.utilities.tenant_compat import schema_context
                     from modules.settings.models import SlackIntegration
 
                     with schema_context(target_schema):

@@ -21,8 +21,8 @@ def send_email_campaign_task(self, campaign_id):
         campaign_id: ID of the EmailCampaign to send
     """
     from .models import EmailCampaign, EmailLog
-    from django_tenants.utils import get_public_schema_name
-    from shared.models import Client, Subscription
+    from shared.utilities.tenant_compat import get_public_schema_name
+    from shared.models import Client
     from shared.utilities.Mailer import Mailer
     
     try:

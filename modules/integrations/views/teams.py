@@ -236,7 +236,7 @@ def teams_oauth_callback(request):
         token_expires_at = timezone.now() + timedelta(seconds=expires_in)
 
         try:
-            from django_tenants.utils import schema_context
+            from shared.utilities.tenant_compat import schema_context
             from modules.settings.models import TeamsIntegration
 
             with schema_context(target_schema):

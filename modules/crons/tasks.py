@@ -153,7 +153,7 @@ def send_weekly_performance_reports(self):
     to configured recipients (from NotificationSettings.weekly_report_email).
     """
     from django.db import connection
-    from django_tenants.utils import get_tenant_model, tenant_context
+    from shared.utilities.tenant_compat import get_tenant_model, tenant_context
     from modules.settings.models import NotificationSettings
     
     logger.info("[CRON] Starting weekly performance reports...")
@@ -216,7 +216,7 @@ def check_sla_breach_warnings(self):
     """
     from django.db import connection
     from django.utils import timezone
-    from django_tenants.utils import get_tenant_model, tenant_context
+    from shared.utilities.tenant_compat import get_tenant_model, tenant_context
     from datetime import timedelta
     
     logger.info("[CRON] Starting SLA breach warning check...")
@@ -535,7 +535,7 @@ def handle_sla_breaches(self):
     """
     from django.db import connection
     from django.utils import timezone
-    from django_tenants.utils import get_tenant_model, tenant_context
+    from shared.utilities.tenant_compat import get_tenant_model, tenant_context
     
     logger.info("[CRON] Starting SLA breach handling...")
     
@@ -956,7 +956,7 @@ def auto_close_resolved_tickets(self):
     
     Runs every 30 minutes.
     """
-    from django_tenants.utils import get_public_schema_name
+    from shared.utilities.tenant_compat import get_public_schema_name
     from shared.models import Client
     
     logger.info("[CRON] Starting auto-close resolved tickets task...")
@@ -989,7 +989,7 @@ def _queue_tickets_for_closing(schema_name):
     """
     from django.utils import timezone
     from datetime import timedelta
-    from django_tenants.utils import schema_context
+    from shared.utilities.tenant_compat import schema_context
     from modules.ticket.models import Ticket
     
     # Close tickets resolved more than 1 hour ago
@@ -1022,7 +1022,7 @@ def close_single_ticket_task(self, schema_name, ticket_id):
         schema_name: Tenant schema name
         ticket_id: ID of the ticket to close
     """
-    from django_tenants.utils import schema_context
+    from shared.utilities.tenant_compat import schema_context
     from modules.ticket.models import Ticket
     
     try:

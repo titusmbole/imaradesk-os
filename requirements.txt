@@ -1,5 +1,4 @@
 Django==5.0.2
-django-tenants==3.7.0
 inertia-django
 psycopg2-binary==2.9.9
 python-decouple==3.8
@@ -32,4 +31,4 @@ supervisor==4.2.5
 
 # Disposable email detection
 disposable-email-domains==0.0.99
-
+mysqlclient==2.1.1

@@ -2,7 +2,7 @@
 Celery tasks for survey processing.
 """
 from celery import shared_task
-from django_tenants.utils import schema_context, get_tenant_model
+from shared.utilities.tenant_compat import schema_context, get_tenant_model
 from django.utils import timezone
 from django.db.models import Q
 import logging

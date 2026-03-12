@@ -1,13 +1,13 @@
 from django.db import models
-from django_tenants.models import TenantMixin, DomainMixin
 import secrets
 import hashlib
 from django.utils import timezone
 
 
-class Client(TenantMixin):
+class Client(models.Model):
     """
-    Tenant model - each client/business gets its own schema
+    Organization/Business settings model for single-tenant application.
+    Stores business-level configuration and metadata.
     """
     name = models.CharField(max_length=100)
     created_on = models.DateField(auto_now_add=True)
@@ -44,21 +44,37 @@ class Client(TenantMixin):
     slack_integration_status = models.CharField(max_length=50, default='not_connected', help_text="Status of Slack integration")
     slack_workspace_info = models.JSONField(blank=True, null=True, help_text="Slack workspace information")
     slack_app_credentials = models.JSONField(blank=True, null=True, help_text="Slack app credentials")
-
-    # django-tenants automatically creates 'schema_name' field
-    # auto_create_schema and auto_drop_schema are inherited from TenantMixin
     
-    auto_create_schema = True
+    class Meta:
+        verbose_name = "Organization"
+        verbose_name_plural = "Organizations"
     
     def __str__(self):
         return self.name
+    
+    @classmethod
+    def get_current(cls):
+        """Get the current (single) organization, or create default if none exists."""
+        org = cls.objects.first()
+        if not org:
+            org = cls.objects.create(name="My Organization", is_active=True, is_verified=True)
+        return org
 
 
-class Domain(DomainMixin):
+class Domain(models.Model):
     """
-    Domain model - maps domains/subdomains to tenants
+    Domain model - simplified for single-tenant (kept for compatibility).
     """
-    pass
+    domain = models.CharField(max_length=253, unique=True)
+    tenant = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='domains')
+    is_primary = models.BooleanField(default=True)
+    
+    class Meta:
+        verbose_name = "Domain"
+        verbose_name_plural = "Domains"
+    
+    def __str__(self):
+        return self.domain
 
 
 class TenantVerificationToken(models.Model):

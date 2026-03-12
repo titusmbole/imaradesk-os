@@ -10,7 +10,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from celery import shared_task
 from django.conf import settings
-from django_tenants.utils import schema_context
+from shared.utilities.tenant_compat import schema_context
 from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)

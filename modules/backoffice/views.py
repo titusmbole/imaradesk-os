@@ -1373,7 +1373,7 @@ def create_email_campaign(request):
     """Create and optionally send an email campaign."""
     from .models import EmailTemplate, EmailCampaign
     from .tasks import send_email_campaign_task
-    from django_tenants.utils import get_public_schema_name
+    from shared.utilities.tenant_compat import get_public_schema_name
     
     admin = request.backoffice_admin
     

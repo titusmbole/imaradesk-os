@@ -2107,7 +2107,7 @@ def slack_oauth_start(request):
     import logging
     from django.conf import settings as django_settings
     from shared.utilities.slack import get_oauth_authorize_url
-    from django_tenants.utils import get_tenant
+    from shared.utilities.tenant_compat import get_tenant
     from django.db import connection
     
     logger = logging.getLogger(__name__)
@@ -2182,7 +2182,7 @@ def slack_oauth_callback(request):
     import logging
     from django.db import connection
     from django.conf import settings as django_settings
-    from django_tenants.utils import schema_context
+    from shared.utilities.tenant_compat import schema_context
     from shared.utilities.slack import exchange_code_for_token, SlackAPIError
     from .models import SlackIntegration
     

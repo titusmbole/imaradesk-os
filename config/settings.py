@@ -7,6 +7,9 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
+# Application name for single-tenant mode
+APP_NAME = config('APP_NAME', default='ImaraDesk')
+
 ALLOWED_HOSTS = ["*"]
 # =========================
 # CORS CONFIGURATION
@@ -70,16 +73,8 @@ PRIMARY_DOMAIN = config('PRIMARY_DOMAIN', default='127.0.0.1:8000')
 # For debug context processor
 INTERNAL_IPS = ['127.0.0.1', 'localhost']
 
-# Shared apps - available across all tenants
-SHARED_APPS = [
-    'django_tenants',
-    'shared',
-    'modules.crons',  # Centralized scheduled tasks (crons)
-    'modules.email_to_ticket',  # Email to ticket - stores tenant help emails in public schema
-    'modules.backoffice',  # Backoffice administration panel for managing tenants
-    'corsheaders',
-    'django_celery_beat',  # Celery Beat scheduler
-    'django_celery_results',  # Celery task results
+# Single-tenant application - all apps in one list
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -87,19 +82,16 @@ SHARED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',  # Required for email notifications
-]
-
-SITE_ID = 1
-
-# Tenant-specific apps - each tenant gets their own isolated data
-TENANT_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    # Third-party apps
+    'corsheaders',
+    'django_celery_beat',  # Celery Beat scheduler
+    'django_celery_results',  # Celery task results
     'inertia',
+    # Shared/Core apps
+    'shared',
+    'modules.crons',  # Centralized scheduled tasks (crons)
+    'modules.email_to_ticket',  # Email to ticket
+    'modules.backoffice',  # Backoffice administration panel
     # Core modules
     'modules.core',
     'modules.tickets',
@@ -118,14 +110,9 @@ TENANT_APPS = [
     'modules.surveys',
 ]
 
-INSTALLED_APPS = list(set(SHARED_APPS + TENANT_APPS))
-
-# Tenant configuration
-TENANT_MODEL = "shared.Client" 
-TENANT_DOMAIN_MODEL = "shared.Domain" 
+SITE_ID = 1 
 
 MIDDLEWARE = [
-    'shared.middlewares.TenantMiddleware.CustomTenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -141,9 +128,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
-
-# Tenant routing
-PUBLIC_SCHEMA_URLCONF = 'config.urls_public'  # For public schema (marketing site)
 
 TEMPLATES = [
     {
@@ -166,18 +150,19 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django_tenants.postgresql_backend',
+        'ENGINE': config('DB_ENGINE'),
         'NAME': config('DB_NAME'),
         'USER': config('DB_USER'),
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
+        'OPTIONS': {
+            'init_command': config('DB_OPTIONS_INIT_COMMAND'),
+        },
     }
 }
 
-DATABASE_ROUTERS = (
-    'django_tenants.routers.TenantSyncRouter',
-)
+# imanidesk_90009
 
 # =========================
 # CACHE CONFIGURATION

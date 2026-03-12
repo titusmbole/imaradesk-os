@@ -183,7 +183,7 @@ def outlook_mail_oauth_callback(request):
 
         # Save the mailbox connection
         try:
-            from django_tenants.utils import schema_context
+            from shared.utilities.tenant_compat import schema_context
             from modules.email_to_ticket.models import OutlookMailbox
 
             with schema_context(target_schema):

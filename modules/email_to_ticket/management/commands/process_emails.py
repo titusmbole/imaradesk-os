@@ -10,7 +10,7 @@ This command:
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django_tenants.utils import schema_context
+from shared.utilities.tenant_compat import schema_context
 from modules.email_to_ticket.utils import EmailReader, route_emails_to_tenants, group_emails_into_threads
 from modules.email_to_ticket.models import TenantHelpEmail, ProcessedEmail
 from shared.models import Client

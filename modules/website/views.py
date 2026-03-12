@@ -123,7 +123,7 @@ def _seed_tenant_data(schema_name, workspace_name, registration_data):
     Returns the created user and password.
     """
     from django.core.management import call_command
-    from django_tenants.utils import schema_context
+    from shared.utilities.tenant_compat import schema_context
     from modules.users.models import Role
     from modules.users.permissions import Permission
     from urllib.parse import urlparse
