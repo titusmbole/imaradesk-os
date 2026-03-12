@@ -13,7 +13,6 @@ urlpatterns = [
     path('dashboard/', views.index, name='index'),
     path('reports/', views.reports, name='reports'),
     path('reports/export/', views.export_reports, name='export_reports'),
-    path('ai/', views.ai, name='ai'),
 
     # Knowledge Base
     path('knowledgebase/', kb_views.knowledgebase, name='knowledgebase'),

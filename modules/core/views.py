@@ -956,15 +956,6 @@ def export_reports(request):
     return response
 
 
-@login_required
-@inertia('AI')
-def ai(request):
-    """AI assistant page."""
-    return {
-        'conversation': [],
-    }
-
-
 @inertia('Onboarding')
 def onboarding(request):
     """
