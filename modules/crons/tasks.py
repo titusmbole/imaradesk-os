@@ -6,137 +6,14 @@ Each task is a wrapper that calls the actual implementation in
 the respective module.
 
 Tasks:
-- Email processing (IMAP, Outlook, Custom IMAP)
-- Future scheduled tasks can be added here
+- SLA breach warnings and handling
+- Auto-close resolved tickets
+- Weekly performance reports
 """
 import logging
 from celery import shared_task
 
 logger = logging.getLogger(__name__)
-
-
-# =============================================================================
-# EMAIL PROCESSING CRONS
-# =============================================================================
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=30)
-def process_tenant_emails(self):
-    """
-    Scheduled task: Process emails from main IMAP server.
-    Runs every 10 seconds.
-    
-    This task polls the IMAP server for new emails, routes them
-    to appropriate tenants, and creates tickets.
-    """
-    from modules.email_to_ticket.tasks import process_tenant_emails as _process_tenant_emails
-    
-    logger.info("[CRON] Starting tenant email processing...")
-    try:
-        # Call the actual implementation
-        result = _process_tenant_emails()
-        logger.info(f"[CRON] Tenant email processing completed: {result}")
-        return result
-    except Exception as e:
-        logger.error(f"[CRON] Tenant email processing failed: {e}")
-        raise self.retry(exc=e)
-
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def process_outlook_emails(self):
-    """
-    Scheduled task: Process Outlook emails via Microsoft Graph API.
-    Runs every 60 seconds.
-    
-    This task fetches unread emails from connected Outlook mailboxes
-    and creates tickets from email threads.
-    """
-    from django.core.management import call_command
-    from io import StringIO
-    
-    logger.info("[CRON] Starting Outlook email processing...")
-    
-    try:
-        out = StringIO()
-        call_command('process_outlook_emails', stdout=out)
-        output = out.getvalue()
-        
-        # Parse results from output
-        tickets_created = 0
-        comments_added = 0
-        
-        for line in output.split('\n'):
-            if 'Tickets created:' in line:
-                try:
-                    tickets_created = int(line.split(':')[1].strip())
-                except (ValueError, IndexError):
-                    pass
-            elif 'Comments added:' in line:
-                try:
-                    comments_added = int(line.split(':')[1].strip())
-                except (ValueError, IndexError):
-                    pass
-        
-        result = {
-            'status': 'completed',
-            'tickets_created': tickets_created,
-            'comments_added': comments_added,
-        }
-        
-        logger.info(f"[CRON] Outlook email processing completed: {result}")
-        return result
-        
-    except Exception as e:
-        logger.error(f"[CRON] Outlook email processing failed: {e}")
-        raise self.retry(exc=e)
-
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def process_custom_imap_emails(self):
-    """
-    Scheduled task: Process Custom IMAP emails.
-    Runs every 60 seconds.
-    
-    This task fetches unread emails from tenant-specific IMAP
-    mailboxes and creates tickets.
-    """
-    from django.core.management import call_command
-    from io import StringIO
-    
-    logger.info("[CRON] Starting Custom IMAP email processing...")
-    
-    try:
-        out = StringIO()
-        call_command('process_custom_emails', stdout=out)
-        output = out.getvalue()
-        
-        # Parse results from output
-        tickets_created = 0
-        comments_added = 0
-        
-        for line in output.split('\n'):
-            if 'Tickets created:' in line:
-                try:
-                    tickets_created = int(line.split(':')[1].strip())
-                except (ValueError, IndexError):
-                    pass
-            elif 'Comments added:' in line:
-                try:
-                    comments_added = int(line.split(':')[1].strip())
-                except (ValueError, IndexError):
-                    pass
-        
-        result = {
-            'status': 'completed',
-            'tickets_created': tickets_created,
-            'comments_added': comments_added,
-        }
-        
-        logger.info(f"[CRON] Custom IMAP email processing completed: {result}")
-        return result
-        
-    except Exception as e:
-        logger.error(f"[CRON] Custom IMAP email processing failed: {e}")
-        raise self.retry(exc=e)
 
 
 # =============================================================================

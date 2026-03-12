@@ -72,18 +72,6 @@ app.conf.beat_schedule = {
         'schedule': 20.0,  # Every 2 seconds
         'options': {'queue': 'sla_notifications'}
     },
-    # Process pending survey invitations - every 60 seconds
-    'process-survey-invitations': {
-        'task': 'modules.surveys.tasks.process_pending_survey_invitations',
-        'schedule': 60.0,  # Every 60 seconds
-        'options': {'queue': 'celery'}
-    },
-    # Send survey reminders - daily at 9 AM
-    'send-survey-reminders': {
-        'task': 'modules.surveys.tasks.send_survey_reminders',
-        'schedule': crontab(hour=9, minute=0),
-        'options': {'queue': 'celery'}
-    },
     # Auto-close resolved tickets - every 30 minutes
     'auto-close-resolved-tickets': {
         'task': 'modules.crons.tasks.auto_close_resolved_tickets',
@@ -100,7 +88,6 @@ app.conf.task_routes = {
     'modules.crons.tasks.handle_sla_*': {'queue': 'sla_notifications'},
     'modules.crons.tasks.close_single_ticket_task': {'queue': 'celery'},
     'modules.crons.tasks.auto_close_resolved_tickets': {'queue': 'celery'},
-    'modules.email_to_ticket.tasks.*': {'queue': 'email_processing'},
 }
 
 # Task execution settings

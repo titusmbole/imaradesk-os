@@ -18,7 +18,7 @@ def index(request):
     from django.db.models.functions import TruncMonth, TruncDate, TruncWeek
     from django.utils import timezone
     from datetime import timedelta
-    from modules.ticket.models import Ticket, Task, ActivityStream
+    from modules.ticket.models import Ticket, ActivityStream
     from modules.users.models import Group
     
     user_profile = None
@@ -169,14 +169,6 @@ def index(request):
                 'closed': month_tickets.filter(status='closed').count(),
             })
     
-    # === TASK STATS ===
-    all_tasks = Task.objects.all()
-    todo_count = all_tasks.filter(status='todo').count()
-    task_in_progress = all_tasks.filter(status='in_progress').count()
-    review_count = all_tasks.filter(status='review').count()
-    done_count = all_tasks.filter(status='done').count()
-    total_tasks = all_tasks.count()
-    
     # === SLA STATS ===
     # Calculate average resolution time from resolved tickets
     resolved_tickets = all_tickets.filter(
@@ -288,13 +280,6 @@ def index(request):
                 'total': total_tickets,
             },
             'sla': sla_data,
-            'tasks': {
-                'todo': todo_count,
-                'inProgress': task_in_progress,
-                'review': review_count,
-                'done': done_count,
-                'total': total_tasks,
-            },
             'performanceData': performance_data,
             'statusDistribution': status_distribution,
             'priorities': priorities,
@@ -572,7 +557,7 @@ def reports(request):
     from django.db.models import Count, Avg, Q, F
     from django.db.models.functions import TruncDate, TruncMonth, TruncWeek
     from datetime import timedelta, datetime
-    from modules.ticket.models import Ticket, Task
+    from modules.ticket.models import Ticket
     from modules.users.models import Group
     
     # Get report type and date filters from query params
@@ -804,150 +789,6 @@ def reports(request):
             } for a in assignee_stats],
         }
     
-    # ========== TASK REPORTS ==========
-    elif report_type == 'tasks':
-        all_tasks = Task.objects.all()
-        period_tasks = all_tasks.filter(created_at__gte=start_date)
-        
-        # Status breakdown
-        status_counts = all_tasks.values('status').annotate(count=Count('id')).order_by('-count')
-        
-        # Priority breakdown
-        priority_counts = all_tasks.values('priority').annotate(count=Count('id')).order_by('-count')
-        
-        # Overdue tasks
-        overdue_count = all_tasks.filter(
-            due_date__lt=now.date(),
-            status__in=['todo', 'in_progress', 'review']
-        ).count()
-        
-        # Assignee stats
-        assignee_stats = all_tasks.filter(assignee__isnull=False).values(
-            'assignee__first_name', 'assignee__last_name', 'assignee__username'
-        ).annotate(
-            total=Count('id'),
-            completed=Count('id', filter=Q(status='done')),
-            in_progress=Count('id', filter=Q(status='in_progress')),
-        ).order_by('-total')[:10]
-        
-        # Daily volume
-        daily_volume = period_tasks.annotate(
-            date=TruncDate('created_at')
-        ).values('date').annotate(count=Count('id')).order_by('date')
-        
-        data['tasks'] = {
-            'total': all_tasks.count(),
-            'period_total': period_tasks.count(),
-            'overdue': overdue_count,
-            'status_breakdown': list(status_counts),
-            'priority_breakdown': list(priority_counts),
-            'daily_volume': list(daily_volume),
-            'assignee_stats': [{
-                'name': f"{a['assignee__first_name']} {a['assignee__last_name']}".strip() or a['assignee__username'],
-                'total': a['total'],
-                'completed': a['completed'],
-                'in_progress': a['in_progress'],
-            } for a in assignee_stats],
-        }
-    
-    # ========== ASSET REPORTS ==========
-    elif report_type == 'assets':
-        try:
-            from modules.assets.models import Asset, AssetCategory
-            
-            all_assets = Asset.objects.all()
-            
-            # Status breakdown
-            status_counts = all_assets.values('status').annotate(count=Count('id')).order_by('-count')
-            
-            # Category breakdown
-            category_counts = all_assets.values('category__name').annotate(count=Count('id')).order_by('-count')
-            
-            # Location breakdown
-            location_counts = all_assets.values('location').annotate(count=Count('id')).order_by('-count')[:10]
-            
-            # Assignment stats
-            assigned_count = all_assets.filter(assigned_user__isnull=False).count()
-            unassigned_count = all_assets.filter(assigned_user__isnull=True).count()
-            
-            # Warranty expiring soon (next 30 days)
-            warranty_expiring = all_assets.filter(
-                warranty_expiry_date__gte=now.date(),
-                warranty_expiry_date__lte=(now + timedelta(days=30)).date()
-            ).count()
-            
-            data['assets'] = {
-                'total': all_assets.count(),
-                'assigned': assigned_count,
-                'unassigned': unassigned_count,
-                'warranty_expiring': warranty_expiring,
-                'status_breakdown': list(status_counts),
-                'category_breakdown': list(category_counts),
-                'location_breakdown': list(location_counts),
-            }
-        except ImportError:
-            data['assets'] = {'error': 'Assets module not available'}
-    
-    # ========== SURVEY REPORTS ==========
-    elif report_type == 'surveys':
-        try:
-            from modules.surveys.models import Survey, SurveyResponse, SurveyInvitation
-            
-            all_surveys = Survey.objects.all()
-            all_responses = SurveyResponse.objects.all()
-            all_invitations = SurveyInvitation.objects.all()
-            
-            # Response rates
-            total_invitations = all_invitations.count()
-            completed_responses = all_responses.filter(submitted_at__isnull=False).count()
-            response_rate = round((completed_responses / total_invitations * 100), 1) if total_invitations > 0 else 0
-            
-            # Average satisfaction (using overall_rating)
-            avg_score = all_responses.filter(
-                overall_rating__isnull=False
-            ).aggregate(avg=Avg('overall_rating'))['avg'] or 0
-            
-            # Responses by survey
-            survey_stats = all_surveys.annotate(
-                response_count=Count('responses'),
-                completed=Count('responses', filter=Q(responses__submitted_at__isnull=False))
-            ).values('id', 'name', 'response_count', 'completed')
-            
-            # Daily responses
-            daily_responses = all_responses.filter(
-                submitted_at__gte=start_date
-            ).annotate(
-                date=TruncDate('submitted_at')
-            ).values('date').annotate(count=Count('id')).order_by('date')
-            
-            # NPS breakdown (using nps_score field)
-            nps_data = {
-                'promoters': all_responses.filter(nps_score__gte=9).count(),
-                'passives': all_responses.filter(nps_score__gte=7, nps_score__lt=9).count(),
-                'detractors': all_responses.filter(nps_score__lt=7, nps_score__isnull=False).count(),
-            }
-            total_nps = nps_data['promoters'] + nps_data['passives'] + nps_data['detractors']
-            if total_nps > 0:
-                nps_data['score'] = round(
-                    ((nps_data['promoters'] - nps_data['detractors']) / total_nps) * 100
-                )
-            else:
-                nps_data['score'] = 0
-            
-            data['surveys'] = {
-                'total_surveys': all_surveys.count(),
-                'total_responses': all_responses.count(),
-                'completed_responses': completed_responses,
-                'total_invitations': total_invitations,
-                'response_rate': response_rate,
-                'avg_satisfaction': round(avg_score, 1) if avg_score else 0,
-                'survey_stats': list(survey_stats),
-                'daily_responses': list(daily_responses),
-                'nps': nps_data,
-            }
-        except ImportError:
-            data['surveys'] = {'error': 'Surveys module not available'}
-    
     return data
 
 
@@ -1101,100 +942,6 @@ def export_reports(request):
             ws_summary.append(['Priority', priority_filter])
         
         auto_adjust_columns(ws_summary)
-        
-    elif report_type == 'tasks':
-        from modules.ticket.models import Task
-        
-        ws.title = 'Tasks Report'
-        
-        tasks = Task.objects.filter(created_at__gte=start_date, created_at__lte=end_date)
-        
-        if agent_filter:
-            tasks = tasks.filter(assignee_id=agent_filter)
-        if status_filter:
-            tasks = tasks.filter(status=status_filter)
-        if priority_filter:
-            tasks = tasks.filter(priority=priority_filter)
-        
-        tasks = tasks.select_related('assignee', 'created_by').order_by('-created_at')
-        
-        headers = ['Title', 'Description', 'Status', 'Priority', 'Assignee', 'Due Date', 'Created By', 'Created', 'Updated']
-        ws.append(headers)
-        style_header_row(ws, len(headers))
-        
-        for task in tasks:
-            ws.append([
-                task.title,
-                task.description[:100] if task.description else '',
-                task.get_status_display() if hasattr(task, 'get_status_display') else task.status,
-                task.get_priority_display() if hasattr(task, 'get_priority_display') else task.priority,
-                f"{task.assignee.first_name} {task.assignee.last_name}".strip() if task.assignee else 'Unassigned',
-                task.due_date.strftime('%Y-%m-%d') if task.due_date else '',
-                f"{task.created_by.first_name} {task.created_by.last_name}".strip() if task.created_by else '',
-                task.created_at.strftime('%Y-%m-%d %H:%M') if task.created_at else '',
-                task.updated_at.strftime('%Y-%m-%d %H:%M') if task.updated_at else '',
-            ])
-        
-    elif report_type == 'assets':
-        from modules.assets.models import Asset
-        
-        ws.title = 'Assets Report'
-        
-        assets = Asset.objects.all()
-        
-        if agent_filter:
-            assets = assets.filter(assigned_user_id=agent_filter)
-        if status_filter:
-            assets = assets.filter(status=status_filter)
-        
-        assets = assets.select_related('assigned_user', 'category').order_by('-created_at')
-        
-        headers = ['Asset Tag', 'Name', 'Category', 'Status', 'Assigned To', 'Purchase Date', 'Purchase Cost', 'Warranty Expiry', 'Location', 'Serial Number']
-        ws.append(headers)
-        style_header_row(ws, len(headers))
-        
-        for asset in assets:
-            ws.append([
-                asset.asset_tag or '',
-                asset.name,
-                asset.category.name if asset.category else '',
-                asset.get_status_display() if hasattr(asset, 'get_status_display') else asset.status,
-                f"{asset.assigned_user.first_name} {asset.assigned_user.last_name}".strip() if asset.assigned_user else 'Unassigned',
-                asset.purchase_date.strftime('%Y-%m-%d') if asset.purchase_date else '',
-                float(asset.purchase_cost) if asset.purchase_cost else '',
-                asset.warranty_expiry_date.strftime('%Y-%m-%d') if asset.warranty_expiry_date else '',
-                asset.location or '',
-                asset.serial_number or '',
-            ])
-        
-    elif report_type == 'surveys':
-        try:
-            from modules.surveys.models import Survey, SurveyResponse
-            
-            ws.title = 'Survey Responses'
-            
-            responses = SurveyResponse.objects.filter(
-                submitted_at__isnull=False,
-                submitted_at__gte=start_date,
-                submitted_at__lte=end_date
-            ).select_related('survey', 'ticket', 'submitted_by').order_by('-submitted_at')
-            
-            headers = ['Survey', 'Ticket #', 'Submitted By', 'Overall Rating', 'NPS Score', 'Submitted At', 'Comments']
-            ws.append(headers)
-            style_header_row(ws, len(headers))
-            
-            for response in responses:
-                ws.append([
-                    response.survey.name if response.survey else '',
-                    response.ticket.ticket_number if response.ticket else '',
-                    f"{response.submitted_by.first_name} {response.submitted_by.last_name}".strip() if response.submitted_by else 'Anonymous',
-                    response.overall_rating or '',
-                    response.nps_score or '',
-                    response.submitted_at.strftime('%Y-%m-%d %H:%M') if response.submitted_at else '',
-                    response.comments[:200] if response.comments else '',
-                ])
-        except ImportError:
-            ws.append(['Survey module not available'])
     
     auto_adjust_columns(ws)
     
@@ -1215,6 +962,138 @@ def ai(request):
     """AI assistant page."""
     return {
         'conversation': [],
+    }
+
+
+@inertia('Onboarding')
+def onboarding(request):
+    """
+    Onboarding page for first-time setup.
+    Shows if no business is registered in the system.
+    """
+    from shared.models import Client
+    from django.core.management import call_command
+    from modules.users.models import Group, UserProfile
+    
+    # If business already exists, redirect to login
+    if Client.objects.exists():
+        return redirect('login')
+    
+    if request.method == 'POST':
+        # Extract form data
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        workspace_name = request.POST.get('workspace_name', '').strip()
+        business_type = request.POST.get('business_type', '')
+        org_size = request.POST.get('org_size', '')
+        
+        # Validation
+        errors = {}
+        
+        if not first_name:
+            errors['first_name'] = 'First name is required'
+        if not last_name:
+            errors['last_name'] = 'Last name is required'
+        if not email:
+            errors['email'] = 'Email is required'
+        if not password:
+            errors['password'] = 'Password is required'
+        elif len(password) < 8:
+            errors['password'] = 'Password must be at least 8 characters'
+        if not workspace_name:
+            errors['workspace_name'] = 'Workspace name is required'
+        
+        # Check if email already exists
+        if email and User.objects.filter(email=email).exists():
+            errors['email'] = 'A user with this email already exists'
+        
+        if errors:
+            return inertia_render(request, 'Onboarding', {'errors': errors})
+        
+        try:
+            # Create the organization/client
+            client = Client.objects.create(
+                name=workspace_name,
+                description=f"Workspace for {workspace_name}",
+                is_active=True,
+                is_verified=True,
+                business_type=business_type,
+                org_size=org_size,
+                created_by_email=email,
+                created_by_name=f"{first_name} {last_name}",
+            )
+            print(f"✓ Created organization: {workspace_name}")
+            
+            # Create admin user
+            username = email.split('@')[0]
+            # Ensure unique username
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_staff=True,
+                is_superuser=True,
+            )
+            print(f"✓ Created admin user: {email}")
+            
+            # Create user profile
+            try:
+                # Create or get Administrator group
+                admin_group, _ = Group.objects.get_or_create(name='Administrator')
+                
+                # Create user profile
+                profile = UserProfile.objects.create(
+                    user=user,
+                    group=admin_group,
+                    phone='',
+                    language='en',
+                    timezone='UTC',
+                )
+                print(f"✓ Created user profile for: {email}")
+            except Exception as e:
+                print(f"Warning: Could not create user profile: {e}")
+            
+            # Run coredesk --init to seed initial data
+            print("\n--- Running initial setup (coredesk --init) ---")
+            try:
+                call_command('coredesk', '--init')
+                print("✓ Initial data seeded successfully")
+            except Exception as e:
+                print(f"Warning: Some seed data may have failed: {e}")
+            
+            print("\n" + "="*60)
+            print("ONBOARDING COMPLETE")
+            print("="*60)
+            print(f"Organization: {workspace_name}")
+            print(f"Admin Email:  {email}")
+            print("="*60 + "\n")
+            
+            # Log the user in automatically
+            login(request, user)
+            
+            # Redirect to dashboard
+            return redirect('index')
+            
+        except Exception as e:
+            print(f"✗ Onboarding error: {e}")
+            import traceback
+            traceback.print_exc()
+            errors['general'] = f'Setup failed: {str(e)}'
+            return inertia_render(request, 'Onboarding', {'errors': errors})
+    
+    # GET request - show the onboarding form
+    return {
+        'errors': {},
     }
 
 

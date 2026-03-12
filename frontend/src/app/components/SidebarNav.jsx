@@ -3,10 +3,7 @@ import { Link, router } from '@inertiajs/react'
 import { 
   Home, 
   Ticket, 
-  ClipboardCheck, 
-  Package, 
   BookOpen, 
-  ClipboardList, 
   Bot, 
   Building2, 
   BarChart3, 
@@ -21,10 +18,7 @@ const iconClass = "w-6 h-6"
 const icons = {
   home: <Home className={iconClass} />,
   tickets: <Ticket className={iconClass} />,
-  tasks: <ClipboardCheck className={iconClass} />,
-  assets: <Package className={iconClass} />,
   knowledgebase: <BookOpen className={iconClass} />,
-  surveys: <ClipboardList className={iconClass} />,
   ai: <Bot className={iconClass} />,
   building: <Building2 className={iconClass} />,
   chart: <BarChart3 className={iconClass} />,
@@ -86,10 +80,7 @@ export default function SidebarNav({ active = 'people' }) {
   const items = [
     { key: 'home', href: '/dashboard/', title: 'Home' },
     { key: 'tickets', href: '/tickets', title: 'Tickets' },
-    { key: 'tasks', href: '/tasks', title: 'Tasks' },
-    { key: 'assets', href: '/assets', title: 'Assets' },
     { key: 'knowledgebase', href: '/knowledgebase', title: 'Knowledge Base' },
-    { key: 'surveys', href: '/surveys/', title: 'Surveys' },
     { key: 'ai', href: '/ai', title: 'AI Assistant' },
     { key: 'building', href: '/organizations', title: 'Organizations' },
     { key: 'chart', href: '/reports', title: 'Reports' },

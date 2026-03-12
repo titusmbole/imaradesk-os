@@ -90,15 +90,10 @@ INSTALLED_APPS = [
     # Shared/Core apps
     'shared',
     'modules.crons',  # Centralized scheduled tasks (crons)
-    'modules.email_to_ticket',  # Email to ticket
-    'modules.backoffice',  # Backoffice administration panel
     # Core modules
     'modules.core',
     'modules.tickets',
-    'modules.tasks',
     'modules.people',
-    'modules.integrations',
-    'modules.assets',
     # Data modules
     'modules.users',
     'modules.kb',
@@ -106,8 +101,6 @@ INSTALLED_APPS = [
     'modules.ticket',
     'modules.sla',
     'modules.customer_portal',
-    'modules.website',
-    'modules.surveys',
 ]
 
 SITE_ID = 1 

@@ -27,7 +27,6 @@ def general_settings(request):
     """General settings page."""
     from shared.models import Client, Domain
     from modules.sla.models import BusinessHours
-    from modules.email_to_ticket.models import TenantHelpEmail
     
     # Get current organization (single-tenant)
     tenant = Client.get_current()
@@ -41,13 +40,6 @@ def general_settings(request):
     # Get primary domain
     primary_domain = Domain.objects.filter(tenant=tenant, is_primary=True).first()
     
-    # Get tenant help email (for email-to-ticket)
-    help_email = None
-    if tenant:
-        tenant_help = TenantHelpEmail.objects.filter(tenant=tenant).first()
-        if tenant_help:
-            help_email = tenant_help.email_address
-    
     business_data = {
         'company_name': tenant.name if tenant else '',
         'description': tenant.description if tenant else '',
@@ -55,7 +47,6 @@ def general_settings(request):
         'org_size': tenant.org_size if tenant else '',
         'domain': primary_domain.domain if primary_domain else '',
         'created_on': tenant.created_on.isoformat() if tenant and tenant.created_on else None,
-        'help_email': help_email,  # Read-only support email for tickets
     }
     
     business_hours_data = None

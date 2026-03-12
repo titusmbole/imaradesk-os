@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.login_view, name='login'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('onboarding/', views.onboarding, name='onboarding'),
     path('2fa-verify/', views.two_factor_verify, name='two_factor_verify'),
     path('2fa-verify/send-code/', views.send_login_2fa_code, name='send_login_2fa_code'),
     path('2fa-verify/verify/', views.verify_login_2fa, name='verify_login_2fa'),

@@ -266,52 +266,6 @@ def _handle_ticket_resolved(instance, schema_name):
             to_email=instance.guest_email,
             context=get_guest_email_context(instance)
         )
-    
-    # Trigger survey if surveys app is installed and active
-    try:
-        logger.info(f"[SURVEY] Starting survey trigger process for ticket {instance.ticket_number}")
-        
-        from modules.settings.models import InstalledApp
-        
-        try:
-            installed_app = InstalledApp.objects.select_related('app').get(
-                app__slug='surveys',
-                is_active=True
-            )
-            logger.info(f"[SURVEY] Surveys app found - subscription_status: {installed_app.subscription_status}")
-        except InstalledApp.DoesNotExist:
-            logger.info(f"[SURVEY] Surveys app NOT installed or not active")
-            return
-        
-        # Check if trial expired
-        if installed_app.subscription_status == 'trial' and installed_app.is_trial_expired:
-            installed_app.subscription_status = 'expired'
-            installed_app.save(update_fields=['subscription_status'])
-            logger.info(f"[SURVEY] Surveys app trial expired")
-            return
-        
-        if installed_app.subscription_status == 'expired':
-            logger.info(f"[SURVEY] Surveys app subscription expired")
-            return
-        
-        # App is valid - check if surveys are enabled in settings
-        from modules.surveys.models import SurveySettings
-        settings = SurveySettings.get_settings()
-        
-        if not settings.enabled:
-            logger.info(f"[SURVEY] Surveys disabled in settings")
-            return
-        
-        # Send survey using ticket.caller (works for both registered users and guests)
-        from .tasks import send_survey_to_ticket_caller_task
-        send_survey_to_ticket_caller_task.delay(
-            schema_name=schema_name,
-            ticket_id=instance.id
-        )
-        logger.info(f"[SURVEY] Queued survey task for ticket {instance.ticket_number}")
-        
-    except Exception as survey_error:
-        logger.error(f"[SURVEY] Failed to trigger survey: {survey_error}")
 
 
 @receiver(post_save, sender=TicketComment)
@@ -422,84 +376,6 @@ def send_mention_notifications(sender, instance, created, **kwargs):
             logger.info(f"Queued mention notification to {mentioned_user.username} for ticket {instance.ticket.ticket_number}")
     except Exception as e:
         logger.error(f"Failed to queue mention notification: {e}")
-
-
-@receiver(post_save, sender=TicketComment)
-def send_telegram_notification(sender, instance, created, **kwargs):
-    """Send Telegram notification when agent replies to a Telegram-sourced ticket."""
-    if not created:
-        return
-    
-    try:
-        # Skip internal notes
-        if instance.is_internal:
-            return
-        
-        # Only for Telegram-sourced tickets
-        if instance.ticket.source != 'telegram':
-            return
-        
-        # Skip messages that came from Telegram (prefixed with [Telegram])
-        if instance.message.startswith('[Telegram]'):
-            return
-        
-        # This is an agent reply - send to Telegram
-        from modules.integrations.views.telegram import send_ticket_reply_to_telegram
-        
-        success = send_ticket_reply_to_telegram(
-            ticket=instance.ticket,
-            comment_text=instance.message,
-            is_resolution=False
-        )
-        
-        if success:
-            logger.info(f"Sent Telegram notification for comment on ticket {instance.ticket.ticket_number}")
-        
-    except Exception as e:
-        logger.error(f"Failed to send Telegram notification: {e}")
-
-
-@receiver(post_save, sender=Ticket)
-def send_telegram_resolution_notification(sender, instance, **kwargs):
-    """Send Telegram notification when a ticket is resolved."""
-    try:
-        # Only for Telegram-sourced tickets
-        if instance.source != 'telegram':
-            return
-        
-        # Check if status changed to resolved
-        if instance.status not in ['resolved', 'closed']:
-            return
-        
-        # Get original status to check if it changed
-        if instance.pk:
-            try:
-                original = Ticket.objects.get(pk=instance.pk)
-                if original.status in ['resolved', 'closed']:
-                    return  # Already was resolved/closed
-            except Ticket.DoesNotExist:
-                return
-        
-        from modules.integrations.views.telegram import send_ticket_reply_to_telegram
-        
-        resolution_message = "Your support request has been resolved. Thank you for contacting us!"
-        
-        # Use resolution comment if available
-        last_comment = instance.comments.filter(is_internal=False).last()
-        if last_comment and not last_comment.message.startswith('[Telegram]'):
-            resolution_message = last_comment.message
-        
-        success = send_ticket_reply_to_telegram(
-            ticket=instance,
-            comment_text=resolution_message,
-            is_resolution=True
-        )
-        
-        if success:
-            logger.info(f"Sent Telegram resolution notification for ticket {instance.ticket_number}")
-        
-    except Exception as e:
-        logger.error(f"Failed to send Telegram resolution notification: {e}")
 
 
 @receiver(post_save, sender=TicketAttachment)

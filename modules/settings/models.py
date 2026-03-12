@@ -167,10 +167,6 @@ class EmailTemplate(models.Model):
         ('welcome_user', 'Welcome Email'),
         ('password_reset', 'Password Reset'),
         
-        # Survey templates
-        ('survey_invitation', 'Survey Invitation'),
-        ('survey_reminder', 'Survey Reminder'),
-        
         # Report templates
         ('weekly_report', 'Weekly Report'),
         

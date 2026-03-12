@@ -33,16 +33,6 @@ class Command(BaseCommand):
             action='store_true',
             help='Initialize default views for tickets, tasks, and KB',
         )
-        parser.add_argument(
-            '--seed-assets',
-            action='store_true',
-            help='Seed default asset categories, locations, and vendors',
-        )
-        parser.add_argument(
-            '--create-backoffice-admin',
-            action='store_true',
-            help='Create backoffice admin user from environment variables (ADMIN_EMAIL, ADMIN_PASSWORD)',
-        )
 
     def handle(self, *args, **options):
         # Create or get organization
@@ -55,7 +45,6 @@ class Command(BaseCommand):
             self.seed_marketplace_apps()
             self.seed_email_templates(reseed=False)
             self.init_views()
-            self.seed_assets()
             self.stdout.write(self.style.SUCCESS('\n=== Initialization Complete ==='))
             return
         
@@ -71,52 +60,6 @@ class Command(BaseCommand):
         
         if options.get('init_views'):
             self.init_views()
-
-        if options.get('seed_assets'):
-            self.seed_assets()
-
-        if options.get('create_backoffice_admin'):
-            self.create_backoffice_admin()
-
-    def create_backoffice_admin(self):
-        """Create backoffice admin user from environment variables."""
-        from decouple import config
-        from modules.backoffice.models import AdminUser
-        from modules.backoffice.views import hash_password
-        
-        self.stdout.write(self.style.SUCCESS('\n--- Creating Backoffice Admin ---'))
-        
-        email = config('ADMIN_EMAIL', default='')
-        password = config('ADMIN_PASSWORD', default='')
-        first_name = config('ADMIN_FIRST_NAME', default='')
-        last_name = config('ADMIN_LAST_NAME', default='')
-        
-        if not email or not password:
-            self.stdout.write(self.style.ERROR(
-                '  ADMIN_EMAIL and ADMIN_PASSWORD must be set in environment'
-            ))
-            return
-        
-        full_name = f"{first_name} {last_name}".strip() or email.split('@')[0]
-        
-        if AdminUser.objects.filter(email=email.lower()).exists():
-            self.stdout.write(self.style.WARNING(f'  ⊘ Admin user already exists: {email}'))
-            return
-        
-        admin = AdminUser.objects.create(
-            email=email.lower(),
-            full_name=full_name,
-            password_hash=hash_password(password),
-            is_active=True,
-            is_superadmin=True,
-            can_manage_businesses=True,
-            can_manage_packages=True,
-            can_manage_billing=True,
-            can_view_analytics=True,
-            can_manage_admins=True,
-        )
-        
-        self.stdout.write(self.style.SUCCESS(f'  ✓ Admin user created: {admin.email}'))
 
     def seed_marketplace_apps(self):
         """Seed marketplace apps."""
@@ -224,122 +167,3 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'  ✓ Created: {created_count}, Updated: {updated_count}'
         ))
-
-    def seed_assets(self):
-        """Seed default asset categories, locations, and vendors."""
-        from modules.assets.models import AssetCategory, Location, Vendor
-
-        self.stdout.write(self.style.SUCCESS('\n--- Seeding Asset Data ---'))
-
-        existing_categories = AssetCategory.objects.count()
-        if existing_categories > 0:
-            self.stdout.write(self.style.WARNING(
-                f'  ⊘ Already has {existing_categories} categories - skipping'
-            ))
-            return
-
-        categories_created, locations_created, vendors_created = self._seed_asset_data()
-        self.stdout.write(self.style.SUCCESS(
-            f'  ✓ Categories: {categories_created}, Locations: {locations_created}, Vendors: {vendors_created}'
-        ))
-
-    def _seed_asset_data(self):
-        """Helper to seed asset categories, locations, and vendors."""
-        from modules.assets.models import AssetCategory, Location, Vendor
-
-        categories_created = 0
-        locations_created = 0
-        vendors_created = 0
-
-        # Default categories
-        categories_data = [
-            {'name': 'Hardware', 'description': 'Physical computing equipment', 'icon': 'computer'},
-            {'name': 'Laptop', 'description': 'Portable computers', 'icon': 'laptop', 'parent': 'Hardware'},
-            {'name': 'Desktop', 'description': 'Desktop computers', 'icon': 'desktop', 'parent': 'Hardware'},
-            {'name': 'Monitor', 'description': 'Display monitors', 'icon': 'monitor', 'parent': 'Hardware'},
-            {'name': 'Server', 'description': 'Server hardware', 'icon': 'server', 'parent': 'Hardware'},
-            {'name': 'Printer', 'description': 'Printing devices', 'icon': 'printer', 'parent': 'Hardware'},
-            {'name': 'Network Equipment', 'description': 'Routers, switches, access points', 'icon': 'network'},
-            {'name': 'Router', 'description': 'Network routers', 'icon': 'router', 'parent': 'Network Equipment'},
-            {'name': 'Switch', 'description': 'Network switches', 'icon': 'switch', 'parent': 'Network Equipment'},
-            {'name': 'Access Point', 'description': 'Wireless access points', 'icon': 'wifi', 'parent': 'Network Equipment'},
-            {'name': 'Software', 'description': 'Software licenses', 'icon': 'software'},
-            {'name': 'Mobile Devices', 'description': 'Phones and tablets', 'icon': 'mobile'},
-            {'name': 'Phone', 'description': 'Mobile phones', 'icon': 'phone', 'parent': 'Mobile Devices'},
-            {'name': 'Tablet', 'description': 'Tablets', 'icon': 'tablet', 'parent': 'Mobile Devices'},
-            {'name': 'Peripherals', 'description': 'Keyboards, mice, etc.', 'icon': 'peripheral'},
-            {'name': 'Furniture', 'description': 'Office furniture', 'icon': 'furniture'},
-            {'name': 'Other', 'description': 'Other assets', 'icon': 'other'},
-        ]
-
-        # First pass: create parent categories
-        parent_categories = {}
-        for cat_data in categories_data:
-            if 'parent' not in cat_data:
-                cat, created = AssetCategory.objects.get_or_create(
-                    name=cat_data['name'],
-                    defaults={
-                        'description': cat_data.get('description', ''),
-                        'icon': cat_data.get('icon', ''),
-                    }
-                )
-                parent_categories[cat_data['name']] = cat
-                if created:
-                    categories_created += 1
-
-        # Second pass: create child categories
-        for cat_data in categories_data:
-            if 'parent' in cat_data:
-                parent = parent_categories.get(cat_data['parent'])
-                if parent:
-                    cat, created = AssetCategory.objects.get_or_create(
-                        name=cat_data['name'],
-                        defaults={
-                            'description': cat_data.get('description', ''),
-                            'icon': cat_data.get('icon', ''),
-                            'parent': parent,
-                        }
-                    )
-                    if created:
-                        categories_created += 1
-
-        # Default locations
-        locations_data = [
-            {'name': 'Headquarters', 'building': 'Main Building', 'floor': '1', 'city': 'New York'},
-            {'name': 'Headquarters', 'building': 'Main Building', 'floor': '2', 'city': 'New York'},
-            {'name': 'Headquarters', 'building': 'Main Building', 'floor': '3', 'city': 'New York'},
-            {'name': 'Data Center', 'building': 'DC1', 'city': 'Chicago'},
-            {'name': 'Remote Office', 'building': 'Branch 1', 'city': 'Los Angeles'},
-            {'name': 'Warehouse', 'building': 'Storage', 'city': 'Dallas'},
-        ]
-
-        for loc_data in locations_data:
-            loc, created = Location.objects.get_or_create(
-                name=loc_data['name'],
-                building=loc_data.get('building', ''),
-                floor=loc_data.get('floor', ''),
-                defaults={'city': loc_data.get('city', '')}
-            )
-            if created:
-                locations_created += 1
-
-        # Default vendors
-        vendors_data = [
-            {'name': 'Dell Technologies', 'website': 'https://dell.com'},
-            {'name': 'HP Inc.', 'website': 'https://hp.com'},
-            {'name': 'Lenovo', 'website': 'https://lenovo.com'},
-            {'name': 'Apple Inc.', 'website': 'https://apple.com'},
-            {'name': 'Microsoft', 'website': 'https://microsoft.com'},
-            {'name': 'Cisco Systems', 'website': 'https://cisco.com'},
-            {'name': 'Samsung', 'website': 'https://samsung.com'},
-        ]
-
-        for vendor_data in vendors_data:
-            vendor, created = Vendor.objects.get_or_create(
-                name=vendor_data['name'],
-                defaults={'website': vendor_data.get('website', '')}
-            )
-            if created:
-                vendors_created += 1
-
-        return categories_created, locations_created, vendors_created
