@@ -973,7 +973,7 @@ def onboarding(request):
     """
     from shared.models import Client
     from django.core.management import call_command
-    from modules.users.models import Group, UserProfile
+    from modules.users.models import Group, Role, UserProfile
     
     # If business already exists, redirect to login
     if Client.objects.exists():
@@ -1026,6 +1026,70 @@ def onboarding(request):
             )
             print(f"✓ Created organization: {workspace_name}")
             
+            # Create default roles first
+            DEFAULT_ROLES = [
+                {
+                    'name': 'Administrator',
+                    'description': 'Full system access with all permissions',
+                    'permissions': ['*'],  # All permissions
+                    'is_system': True,
+                },
+                {
+                    'name': 'Agent',
+                    'description': 'Support agent with ticket management access',
+                    'permissions': [
+                        'tickets.view', 'tickets.create', 'tickets.edit', 'tickets.assign',
+                        'kb.view', 'kb.create', 'kb.edit',
+                        'customers.view',
+                    ],
+                    'is_system': True,
+                },
+                {
+                    'name': 'Supervisor',
+                    'description': 'Team supervisor with reporting access',
+                    'permissions': [
+                        'tickets.view', 'tickets.create', 'tickets.edit', 'tickets.assign', 'tickets.delete',
+                        'kb.view', 'kb.create', 'kb.edit', 'kb.delete',
+                        'customers.view', 'customers.edit',
+                        'reports.view',
+                    ],
+                    'is_system': True,
+                },
+            ]
+            
+            admin_role = None
+            for role_data in DEFAULT_ROLES:
+                role, created = Role.objects.get_or_create(
+                    name=role_data['name'],
+                    defaults={
+                        'description': role_data['description'],
+                        'permissions': role_data['permissions'],
+                        'is_system': role_data['is_system'],
+                    }
+                )
+                if role_data['name'] == 'Administrator':
+                    admin_role = role
+                if created:
+                    print(f"✓ Created role: {role_data['name']}")
+            
+            # Create default groups
+            DEFAULT_GROUPS = [
+                {'name': 'Administrator', 'description': 'System administrators'},
+                {'name': 'Support', 'description': 'General support team'},
+                {'name': 'Technical', 'description': 'Technical support team'},
+            ]
+            
+            admin_group = None
+            for group_data in DEFAULT_GROUPS:
+                group, created = Group.objects.get_or_create(
+                    name=group_data['name'],
+                    defaults={'description': group_data['description']}
+                )
+                if group_data['name'] == 'Administrator':
+                    admin_group = group
+                if created:
+                    print(f"✓ Created group: {group_data['name']}")
+            
             # Create admin user
             username = email.split('@')[0]
             # Ensure unique username
@@ -1046,20 +1110,21 @@ def onboarding(request):
             )
             print(f"✓ Created admin user: {email}")
             
-            # Create user profile
+            # Create user profile with Administrator role
             try:
-                # Create or get Administrator group
-                admin_group, _ = Group.objects.get_or_create(name='Administrator')
-                
-                # Create user profile
                 profile = UserProfile.objects.create(
                     user=user,
-                    group=admin_group,
+                    full_name=f"{first_name} {last_name}",
                     phone='',
-                    language='en',
                     timezone='UTC',
+                    is_agent=True,  # Make user appear in Team > Users
+                    is_customer=False,
+                    role=admin_role,  # Assign Administrator role
                 )
-                print(f"✓ Created user profile for: {email}")
+                # Add to Administrator group
+                if admin_group:
+                    profile.groups.add(admin_group)
+                print(f"✓ Created user profile for: {email} (Administrator)")
             except Exception as e:
                 print(f"Warning: Could not create user profile: {e}")
             
