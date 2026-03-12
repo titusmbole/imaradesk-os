@@ -65,10 +65,7 @@ export default function AppNotInstalled({ app = {}, return_url = '/' }) {
               
               {/* Help Text */}
               <p className="text-xs text-gray-400 text-center mt-6">
-                Need help? Contact your administrator or visit the{' '}
-                <Link href="/settings/marketplace/" className="text-[#4a154b] hover:underline">
-                  Marketplace
-                </Link>
+                Need help? Contact us &nbsp; <a target="_blank" href="mailto:info@imaradesk.com" className="text-[#4a154b] hover:underline">Support</a>
               </p>
             </div>
           </div>
@@ -76,4 +73,5 @@ export default function AppNotInstalled({ app = {}, return_url = '/' }) {
       </AppShell>
     </>
   )
+
 }
