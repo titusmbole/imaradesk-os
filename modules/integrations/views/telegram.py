@@ -12,7 +12,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.db import connection
 from inertia import inertia
 
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ def telegram_integration_setup(request):
         # Get current host for webhook URL preview
         current_host = request.get_host()
         protocol = 'https' if request.is_secure() else 'http'
-        webhook_preview = f"{protocol}://{current_host}/api/integrations/telegram/webhook/{connection.schema_name}/"
+        webhook_preview = f"{protocol}://{current_host}/api/integrations/telegram/webhook/default/"
 
         return {
             'title': 'Telegram Integration Setup',
@@ -182,7 +181,7 @@ def telegram_connect(request):
         protocol = 'https' if request.is_secure() else 'http'
         
         # Webhook URL includes tenant schema for multi-tenant routing
-        webhook_url = f"{protocol}://{current_host}/api/integrations/telegram/webhook/{connection.schema_name}/"
+        webhook_url = f"{protocol}://{current_host}/api/integrations/telegram/webhook/default/"
         
         webhook_set = set_telegram_webhook(bot_token, webhook_url, webhook_secret)
         
@@ -190,7 +189,7 @@ def telegram_connect(request):
             integration.webhook_url = webhook_url
             integration.save()
         
-        logger.info(f"Telegram bot connected for tenant {connection.schema_name}: @{bot_info.get('username')}")
+        logger.info(f"Telegram bot connected: @{bot_info.get('username')}")
         
         return JsonResponse({
             'success': True,
@@ -238,7 +237,7 @@ def telegram_configure(request):
         integration.notify_new_comment = data.get('notify_new_comment', True)
         integration.save()
         
-        logger.info(f"Telegram integration configured for tenant {connection.schema_name}")
+        logger.info("Telegram integration configured")
         
         return JsonResponse({
             'status': 'success',
@@ -271,7 +270,7 @@ def telegram_disconnect(request):
             # Clear chat mappings
             TelegramChat.objects.all().delete()
             
-            logger.info(f"Telegram integration disconnected for tenant {connection.schema_name}")
+            logger.info("Telegram integration disconnected")
         
         return JsonResponse({
             'success': True,

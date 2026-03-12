@@ -12,6 +12,7 @@ import traceback
 from datetime import datetime
 
 from shared.decorators import require_app
+from shared.models import Client
 from .models import (
     Customer, 
     CustomerContact, 
@@ -23,6 +24,23 @@ from .models import (
 from modules.ticket.models import Ticket
 
 
+def get_organization_name():
+    """Get the current organization name for single-tenant setup."""
+    try:
+        org = Client.get_current()
+        return org.name if org else 'Support'
+    except Exception:
+        return 'Support'
+
+
+def get_organization():
+    """Get the current organization for single-tenant setup."""
+    try:
+        return Client.get_current()
+    except Exception:
+        return None
+
+
 # ============================================
 # Customer Portal (Customer-facing)
 # ============================================
@@ -32,12 +50,11 @@ from modules.ticket.models import Ticket
 def portal_home(request):
     """Customer portal homepage."""
     from modules.kb.models import KBCategory, KBArticle
-    from django.db import connection
     
     settings = CustomerPortalSettings.get_settings()
     
-    # Get tenant/business name from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
+    # Get tenant/business name
+    tenant_name = get_organization_name() or settings.portal_title
     
     # Get KB categories and articles if enabled
     categories = []
@@ -136,10 +153,9 @@ def portal_create_ticket(request):
     """Guest ticket creation page."""
     settings = CustomerPortalSettings.get_settings()
     from modules.kb.models import KBArticle
-    from django.db import connection
     
-    # Get tenant/business name from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
+    # Get tenant/business name
+    tenant_name = get_organization_name() or settings.portal_title
     
     # Get suggested KB articles if enabled
     suggested_articles = []
@@ -222,10 +238,9 @@ def portal_submit_ticket(request):
 def portal_track_ticket(request):
     """Track ticket page."""
     settings = CustomerPortalSettings.get_settings()
-    from django.db import connection
     
-    # Get tenant/business name from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
+    # Get tenant/business name
+    tenant_name = get_organization_name() or settings.portal_title
     
     ticket_number = request.GET.get('ticket_number', '')
     email = request.GET.get('email', '')
@@ -381,7 +396,6 @@ def portal_kb_list(request):
     """List KB articles in customer portal with category filtering."""
     from modules.kb.models import KBCategory, KBArticle
     from modules.settings.models import KnowledgeBaseSettings
-    from django.db import connection
     
     settings = CustomerPortalSettings.get_settings()
     kb_settings = KnowledgeBaseSettings.get_settings()
@@ -394,8 +408,8 @@ def portal_kb_list(request):
     if kb_settings.require_login_to_view and not request.user.is_authenticated:
         return redirect('customer_portal_login')
     
-    # Get tenant/business name from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
+    # Get tenant/business name
+    tenant_name = get_organization_name() or settings.portal_title
     
     # Get selected category from query param
     category_id = request.GET.get('category')
@@ -456,7 +470,6 @@ def portal_kb_article(request, article_id):
     """View KB article in customer portal."""
     from modules.kb.models import KBArticle
     from modules.settings.models import KnowledgeBaseSettings
-    from django.db import connection
     
     settings = CustomerPortalSettings.get_settings()
     kb_settings = KnowledgeBaseSettings.get_settings()
@@ -469,8 +482,8 @@ def portal_kb_article(request, article_id):
     if kb_settings.require_login_to_view and not request.user.is_authenticated:
         return redirect('customer_portal_login')
     
-    # Get tenant/business name from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
+    # Get tenant/business name
+    tenant_name = get_organization_name() or settings.portal_title
     
     article = get_object_or_404(KBArticle, id=article_id, status='published')
     
@@ -513,7 +526,6 @@ def portal_kb_search(request):
     """Search KB articles in customer portal."""
     from modules.kb.models import KBArticle
     from modules.settings.models import KnowledgeBaseSettings
-    from django.db import connection
     from django.db.models import Q
     
     settings = CustomerPortalSettings.get_settings()
@@ -527,8 +539,8 @@ def portal_kb_search(request):
     if kb_settings.require_login_to_view and not request.user.is_authenticated:
         return redirect('customer_portal_login')
     
-    # Get tenant/business name from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
+    # Get tenant/business name
+    tenant_name = get_organization_name() or settings.portal_title
     
     query = request.GET.get('q', '')
     results = []
@@ -561,14 +573,14 @@ def portal_kb_search(request):
 @inertia('CustomerPortalSurveys')
 def portal_surveys(request):
     """Customer survey page with business-type specific questions."""
-    from django.db import connection
     from .survey_questions import SurveyQuestions
     
     settings = CustomerPortalSettings.get_settings()
     
-    # Get tenant/business name and type from current tenant
-    tenant_name = connection.tenant.name if hasattr(connection, 'tenant') else settings.portal_title
-    business_type = connection.tenant.business_type if hasattr(connection, 'tenant') and hasattr(connection.tenant, 'business_type') else 'Other'
+    # Get tenant/business name and type
+    org = get_organization()
+    tenant_name = org.name if org else settings.portal_title
+    business_type = getattr(org, 'business_type', 'Other') if org else 'Other'
     
     # Get questions for the business type
     questions = SurveyQuestions.get_questions_for_business_type(business_type)

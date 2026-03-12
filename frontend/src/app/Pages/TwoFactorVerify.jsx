@@ -3,7 +3,6 @@ import { Head } from '@inertiajs/react';
 import toast from 'react-hot-toast';
 import AuthLayout from '../components/AuthLayout';
 import { Mail, Smartphone, Shield, ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
-import twoFactorIllustration from '../../site/assets/illustrations/login.jpg';
 
 export default function TwoFactorVerify({ 
   email_2fa_enabled, 
@@ -161,7 +160,6 @@ export default function TwoFactorVerify({
     <AuthLayout
       title="Two-Factor Authentication"
       subtitle="Verify your identity to continue securely"
-      illustration={twoFactorIllustration}
       features={[
         'Extra layer of security for your account',
         'Protect against unauthorized access',

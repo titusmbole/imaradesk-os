@@ -123,6 +123,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'shared.middlewares.OnboardingMiddleware.OnboardingMiddleware',
     'inertia.middleware.InertiaMiddleware',
     'shared.middlewares.InertiaMiddleware.inertia_share',
 ]

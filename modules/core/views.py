@@ -307,16 +307,16 @@ def index(request):
 @inertia('Login')
 def login_view(request):
     """User login page (GET + POST)."""
-    # Check if tenant is verified before allowing login attempts
+    # Check if organization is verified before allowing login attempts
     try:
-        from django.db import connection
-        tenant = connection.tenant
+        from shared.models import Client
+        tenant = Client.get_current()
         if tenant and hasattr(tenant, 'is_verified') and not tenant.is_verified:
             return inertia_render(request, 'Login', {
                 'errors': {'general': 'This workspace has not been verified yet. Please check your email for the verification link.'},
             })
     except Exception:
-        pass  # If we can't check the tenant, proceed with normal login
+        pass  # If we can't check, proceed with normal login
     
     if request.method == 'POST':
         email = request.POST.get('email')

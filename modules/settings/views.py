@@ -26,17 +26,15 @@ User = get_user_model()
 @inertia('Settings')
 def general_settings(request):
     """General settings page."""
-    from django.db import connection
     from shared.models import Client, Domain
     from modules.sla.models import BusinessHours
     from modules.email_to_ticket.models import TenantHelpEmail
     
-    # Get current tenant/client info
-    tenant = connection.tenant
+    # Get current organization (single-tenant)
+    tenant = Client.get_current()
     
     # Debug logging
-    print(f"[general_settings] Tenant schema: {tenant.schema_name if tenant else 'None'}")
-    print(f"[general_settings] Tenant name: {tenant.name if tenant else 'None'}")
+    print(f"[general_settings] Organization: {tenant.name if tenant else 'None'}")
     
     # Get business hours if exists
     business_hours = BusinessHours.objects.filter(is_active=True).first()
@@ -103,8 +101,9 @@ def update_business_info(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
     
-    # Get current tenant
-    tenant = connection.tenant
+    # Get current organization (single-tenant)
+    from shared.models import Client
+    tenant = Client.get_current()
     
     if not tenant:
         return JsonResponse({'success': False, 'error': 'No tenant found'}, status=400)
@@ -637,11 +636,11 @@ def integrations_settings(request):
 @inertia('CustomDomains')
 def custom_domains(request):
     """Custom domains settings page."""
-    from django.db import connection
+    from shared.models import Client
     
-    # Get current tenant schema for CNAME target
-    tenant = connection.tenant
-    tenant_subdomain = tenant.schema_name if tenant else 'tenant'
+    # Get current organization for CNAME target
+    tenant = Client.get_current()
+    tenant_subdomain = 'app'  # Single tenant uses 'app' subdomain
     
     domains = []
     for domain in CustomDomain.objects.all():
@@ -1999,7 +1998,7 @@ def toggle_view(request, view_id):
         view.save()
         
         # Invalidate views cache
-        invalidate_views_cache(connection.schema_name)
+        invalidate_views_cache('default')
         
         return JsonResponse({
             'success': True,
@@ -2043,7 +2042,7 @@ def reorder_views(request):
                 continue
         
         # Invalidate views cache
-        invalidate_views_cache(connection.schema_name)
+        invalidate_views_cache('default')
         
         return JsonResponse({
             'success': True,
@@ -2073,7 +2072,7 @@ def set_default_view(request, view_id):
         view.save()
         
         # Invalidate views cache
-        invalidate_views_cache(connection.schema_name)
+        invalidate_views_cache('default')
         
         return JsonResponse({
             'success': True,
@@ -2108,7 +2107,6 @@ def slack_oauth_start(request):
     from django.conf import settings as django_settings
     from shared.utilities.slack import get_oauth_authorize_url
     from shared.utilities.tenant_compat import get_tenant
-    from django.db import connection
     
     logger = logging.getLogger(__name__)
     
@@ -2122,7 +2120,6 @@ def slack_oauth_start(request):
     protocol = 'https' if request.is_secure() else 'http'
     
     logger.info(f"Tenant schema: {tenant.schema_name}")
-    logger.info(f"Current DB schema: {connection.schema_name}")
     logger.info(f"Host: {host}")
     logger.info(f"Protocol: {protocol}")
     logger.info(f"User: {request.user}")
@@ -2180,7 +2177,6 @@ def slack_oauth_callback(request):
     import json
     import base64
     import logging
-    from django.db import connection
     from django.conf import settings as django_settings
     from shared.utilities.tenant_compat import schema_context
     from shared.utilities.slack import exchange_code_for_token, SlackAPIError
@@ -2198,7 +2194,6 @@ def slack_oauth_callback(request):
     logger.info(f"Request host: {request.get_host()}")
     logger.info(f"Full URL: {request.build_absolute_uri()}")
     logger.info(f"GET params: {dict(request.GET)}")
-    logger.info(f"Current schema: {connection.schema_name}")
     
     # Decode state to get tenant info
     state = request.GET.get('state')
@@ -2592,9 +2587,10 @@ def api_add_custom_domain(request):
                 'error': 'This domain is already added'
             }, status=400)
         
-        # Get tenant schema for CNAME target
-        tenant = connection.tenant
-        tenant_subdomain = tenant.schema_name if tenant else 'tenant'
+        # Get organization for CNAME target (single-tenant)
+        from shared.models import Client
+        tenant = Client.get_current()
+        tenant_subdomain = 'app'  # Single tenant uses 'app' subdomain
         
         # Create the domain
         custom_domain = CustomDomain.objects.create(
@@ -2768,9 +2764,9 @@ def api_verify_domain_dns(request, domain_id):
             message = 'DNS verified successfully! SSL certificate will be provisioned shortly.'
             logger.info(f'[DNS Verification] SUCCESS - Domain {custom_domain.domain} fully verified')
             
-            # Create django-tenants Domain entry for routing
-            from shared.models import Domain
-            tenant = connection.tenant
+            # Create Domain entry for routing
+            from shared.models import Client, Domain
+            tenant = Client.get_current()
             
             # Check if Domain entry already exists
             existing_domain = Domain.objects.filter(domain=custom_domain.domain).first()
@@ -2780,7 +2776,7 @@ def api_verify_domain_dns(request, domain_id):
                     tenant=tenant,
                     is_primary=False  # Custom domains are not primary
                 )
-                logger.info(f'[DNS Verification] Created django-tenants Domain entry for {custom_domain.domain} -> {tenant.schema_name}')
+                logger.info(f'[DNS Verification] Created Domain entry for {custom_domain.domain} -> {tenant.name}')
             else:
                 logger.info(f'[DNS Verification] Domain entry already exists for {custom_domain.domain}')
                 
@@ -2899,12 +2895,12 @@ def api_set_primary_domain(request, domain_id):
 @require_http_methods(['GET'])
 def api_get_domain_dns_records(request, domain_id):
     """Get DNS records configuration for a domain."""
-    from django.db import connection
+    from shared.models import Client
     
     try:
         custom_domain = CustomDomain.objects.get(id=domain_id)
-        tenant = connection.tenant
-        tenant_subdomain = tenant.schema_name if tenant else 'tenant'
+        tenant = Client.get_current()
+        tenant_subdomain = 'app'  # Single tenant uses 'app' subdomain
         
         return JsonResponse({
             'success': True,

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Wifi, Loader2 } from 'lucide-react'
-import okImg from '../../site/assets/illustrations/ok.jpg'
-import errorImg from '../../site/assets/illustrations/error.jpg'
+import { Wifi, Loader2, CheckCircle2, WifiOff } from 'lucide-react'
 
 export default function NetworkStatusModal() {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
@@ -56,7 +54,7 @@ export default function NetworkStatusModal() {
           // Success state
           <>
             <div className="flex justify-center mb-4">
-              <img src={okImg} alt="" className="w-32 h-32 object-contain" />
+              <CheckCircle2 className="w-24 h-24 text-green-500" />
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
@@ -74,7 +72,7 @@ export default function NetworkStatusModal() {
           // Offline/Reconnecting state
           <>
             <div className="flex justify-center mb-4">
-              <img src={errorImg} alt="" className="w-32 h-32 object-contain" />
+              <WifiOff className="w-24 h-24 text-red-500" />
             </div>
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">

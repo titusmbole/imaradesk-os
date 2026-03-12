@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def get_current_schema():
     """Get the current tenant schema name."""
-    return connection.schema_name
+    return 'default'
 
 
 def get_notification_settings():
@@ -41,11 +41,12 @@ def is_notification_enabled(setting_name):
 def get_guest_email_context(ticket, extra_context=None):
     """Build common context for guest email notifications."""
     from django.conf import settings as django_settings
-    from django.db import connection
+    from shared.models import Client
     
-    # Get company name from current tenant
+    # Get company name
     try:
-        company_name = connection.tenant.name if hasattr(connection, 'tenant') else 'Support Team'
+        org = Client.get_current()
+        company_name = org.name if org else 'Support Team'
     except Exception:
         company_name = 'Support Team'
     

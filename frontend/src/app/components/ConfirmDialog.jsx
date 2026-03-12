@@ -1,5 +1,5 @@
 import React from 'react'
-import questionImg from '../../site/assets/illustrations/question.jpg'
+import { HelpCircle } from 'lucide-react'
 
 export default function ConfirmDialog({ 
   isOpen, 
@@ -30,7 +30,7 @@ export default function ConfirmDialog({
       <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 animate-fadeIn">
         {/* Illustration */}
         <div className="flex justify-center mb-4">
-          <img src={questionImg} alt="" className="w-32 h-32 object-contain" />
+          <HelpCircle className="w-24 h-24 text-[#4a154b]" />
         </div>
 
         {/* Content */}

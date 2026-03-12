@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Head, useForm, Link } from '@inertiajs/react'
 import toast from 'react-hot-toast'
 import AuthLayout from '../components/AuthLayout'
-import forgotPasswordIllustration from '../../site/assets/illustrations/forgotpasword.jpg'
 
 export default function ForgotPassword() {
   const [emailSent, setEmailSent] = useState(false)
@@ -39,7 +38,6 @@ export default function ForgotPassword() {
     <AuthLayout
       title="Reset Your Password"
       subtitle="Don't worry! It happens. Enter your email and we'll send you a link to reset your password."
-      illustration={forgotPasswordIllustration}
       features={[
         'Secure password reset process',
         'Link expires in 24 hours',

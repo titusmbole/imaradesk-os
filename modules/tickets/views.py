@@ -48,8 +48,8 @@ def invalidate_views_cache(tenant_schema):
 @inertia('Tickets')
 def tickets(request):
     """Tickets list page with real data from database."""
-    # Get tenant schema for cache key
-    tenant_schema = connection.schema_name
+    # Use static schema name for single-tenant cache key
+    tenant_schema = 'default'
     
     # Load cached views
     cached_views = get_cached_views(tenant_schema)
@@ -704,8 +704,9 @@ def _process_comment_mentions(comment, ticket, mention_ids, author):
     
     # Get business info
     try:
-        from django.db import connection
-        company_name = connection.tenant.name if hasattr(connection, 'tenant') else 'Support'
+        from shared.models import Client
+        org = Client.get_current()
+        company_name = org.name if org else 'Support'
     except Exception:
         company_name = 'Support'
     

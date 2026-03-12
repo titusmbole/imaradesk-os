@@ -11,10 +11,10 @@ import {
   Building2, 
   BarChart3, 
   Settings,
-  LogOut
+  LogOut,
+  HelpCircle
 } from 'lucide-react'
 import Modal, { ModalBody, ModalFooter } from './Modal'
-import questionImg from '../../site/assets/illustrations/question.jpg'
 
 const iconClass = "w-6 h-6"
 
@@ -149,7 +149,7 @@ export default function SidebarNav({ active = 'people' }) {
       >
         <ModalBody>
           <div className="flex justify-center mb-4">
-            <img src={questionImg} alt="" className="w-32 h-32 object-contain" />
+            <HelpCircle className="w-24 h-24 text-[#4a154b]" />
           </div>
           <p className="text-gray-600 text-center">Are you sure you want to log out?</p>
         </ModalBody>

@@ -4,7 +4,6 @@ import toast from 'react-hot-toast'
 import { THEME } from '../constants/theme'
 import AuthLayout from '../components/AuthLayout'
 import Select from '../components/SearchableSelect'
-import registerIllustration from '../../site/assets/illustrations/register.jpg'
 
 export default function Register({ errors: serverErrors = {} }) {
   const [currentStep, setCurrentStep] = useState(1)
@@ -148,7 +147,6 @@ export default function Register({ errors: serverErrors = {} }) {
     <AuthLayout
       title="Join Thousands of Teams"
       subtitle="Streamline your support operations with ImaraDesk's powerful platform trusted by organizations worldwide"
-      illustration={registerIllustration}
       features={[
         'Setup your workspace in under 5 minutes',
         'No credit card required to get started',

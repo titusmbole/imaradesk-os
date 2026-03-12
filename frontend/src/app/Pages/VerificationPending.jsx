@@ -1,14 +1,12 @@
 import React from 'react'
 import { Head } from '@inertiajs/react'
 import AuthLayout from '../components/AuthLayout'
-import emailIllustration from '../../site/assets/illustrations/ok.jpg'
 
 export default function VerificationPending({ email, workspace_name }) {
   return (
     <AuthLayout
       title="📧 Verify Your Email"
       subtitle="We've sent a verification link to your email address. Please check your inbox to activate your workspace."
-      illustration={emailIllustration}
       features={[
         'Check your email inbox',
         'Click the verification link',

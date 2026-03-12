@@ -906,3 +906,246 @@ def verification_pending(request):
         'email': email,
         'workspace_name': workspace_name,
     }
+
+
+# =============================================================================
+# ONBOARDING VIEWS
+# =============================================================================
+
+@ensure_csrf_cookie
+@inertia('Onboarding')
+def onboarding(request):
+    """
+    Onboarding page for first-time setup.
+    Shows if no business is registered in the system.
+    """
+    from shared.models import Client
+    from django.core.management import call_command
+    import json
+    
+    # If business already exists, redirect to login
+    if Client.objects.exists():
+        return redirect('login')
+    
+    if request.method == 'POST':
+        # Extract form data
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        workspace_name = request.POST.get('workspace_name', '').strip()
+        business_type = request.POST.get('business_type', '')
+        org_size = request.POST.get('org_size', '')
+        
+        # Validation
+        errors = {}
+        
+        if not first_name:
+            errors['first_name'] = 'First name is required'
+        if not last_name:
+            errors['last_name'] = 'Last name is required'
+        if not email:
+            errors['email'] = 'Email is required'
+        if not password:
+            errors['password'] = 'Password is required'
+        elif len(password) < 8:
+            errors['password'] = 'Password must be at least 8 characters'
+        if not workspace_name:
+            errors['workspace_name'] = 'Workspace name is required'
+        
+        # Check if email already exists
+        if email and User.objects.filter(email=email).exists():
+            errors['email'] = 'A user with this email already exists'
+        
+        if errors:
+            return inertia_render(request, 'Onboarding', {'errors': errors})
+        
+        try:
+            # Create the organization/client
+            client = Client.objects.create(
+                name=workspace_name,
+                description=f"Workspace for {workspace_name}",
+                is_active=True,
+                is_verified=True,
+                business_type=business_type,
+                org_size=org_size,
+                created_by_email=email,
+                created_by_name=f"{first_name} {last_name}",
+            )
+            print(f"✓ Created organization: {workspace_name}")
+            
+            # Create admin user
+            username = email.split('@')[0]
+            # Ensure unique username
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_staff=True,
+                is_superuser=True,
+            )
+            print(f"✓ Created admin user: {email}")
+            
+            # Create user profile
+            try:
+                # Create or get Administrator group
+                admin_group, _ = Group.objects.get_or_create(name='Administrator')
+                
+                # Create user profile
+                profile = UserProfile.objects.create(
+                    user=user,
+                    group=admin_group,
+                    phone='',
+                    language='en',
+                    timezone='UTC',
+                )
+                print(f"✓ Created user profile for: {email}")
+            except Exception as e:
+                print(f"Warning: Could not create user profile: {e}")
+            
+            # Run coredesk --init to seed initial data
+            print("\n--- Running initial setup (coredesk --init) ---")
+            try:
+                call_command('coredesk', '--init')
+                print("✓ Initial data seeded successfully")
+            except Exception as e:
+                print(f"Warning: Some seed data may have failed: {e}")
+            
+            print("\n" + "="*60)
+            print("ONBOARDING COMPLETE")
+            print("="*60)
+            print(f"Organization: {workspace_name}")
+            print(f"Admin Email:  {email}")
+            print("="*60 + "\n")
+            
+            # Log the user in automatically
+            from django.contrib.auth import login
+            login(request, user)
+            
+            # Redirect to dashboard
+            return redirect('index')
+            
+        except Exception as e:
+            print(f"✗ Onboarding error: {e}")
+            import traceback
+            traceback.print_exc()
+            errors['general'] = f'Setup failed: {str(e)}'
+            return inertia_render(request, 'Onboarding', {'errors': errors})
+    
+    # GET request - show the onboarding form
+    return {
+        'errors': {},
+    }
+
+
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@require_http_methods(["POST"])
+def test_db_connection(request):
+    """
+    Test database connection with provided credentials.
+    This is for validation purposes only - credentials are not saved.
+    """
+    try:
+        data = json.loads(request.body)
+        host = data.get('host', 'localhost')
+        port = data.get('port', '3306')
+        name = data.get('name', '')
+        user = data.get('user', '')
+        password = data.get('password', '')
+        
+        if not all([host, name, user]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Host, database name, and user are required'
+            })
+        
+        # Try to connect to the database
+        import MySQLdb
+        
+        try:
+            connection = MySQLdb.connect(
+                host=host,
+                port=int(port) if port else 3306,
+                user=user,
+                passwd=password,
+                db=name,
+                connect_timeout=5,
+            )
+            connection.close()
+            return JsonResponse({
+                'success': True,
+                'message': 'Connection successful'
+            })
+        except MySQLdb.Error as e:
+            error_msg = str(e)
+            if 'Access denied' in error_msg:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Access denied. Check username and password.'
+                })
+            elif 'Unknown database' in error_msg:
+                return JsonResponse({
+                    'success': False,
+                    'error': f"Database '{name}' does not exist."
+                })
+            elif "Can't connect" in error_msg:
+                return JsonResponse({
+                    'success': False,
+                    'error': f"Cannot connect to MySQL server at {host}:{port}"
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': error_msg
+                })
+                
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON data'
+        })
+    except ImportError:
+        # MySQLdb not available, try with pymysql
+        try:
+            import pymysql
+            data = json.loads(request.body) if not isinstance(request.body, dict) else request.body
+            host = data.get('host', 'localhost')
+            port = data.get('port', '3306')
+            name = data.get('name', '')
+            user = data.get('user', '')
+            password = data.get('password', '')
+            
+            connection = pymysql.connect(
+                host=host,
+                port=int(port) if port else 3306,
+                user=user,
+                password=password,
+                database=name,
+                connect_timeout=5,
+            )
+            connection.close()
+            return JsonResponse({
+                'success': True,
+                'message': 'Connection successful'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

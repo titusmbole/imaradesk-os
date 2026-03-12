@@ -59,6 +59,17 @@ class Client(models.Model):
         if not org:
             org = cls.objects.create(name="My Organization", is_active=True, is_verified=True)
         return org
+    
+    @property
+    def schema_name(self):
+        """Return static schema name for single-tenant compatibility."""
+        return 'default'
+    
+    @property
+    def domain_url(self):
+        """Return domain URL for single-tenant compatibility."""
+        from django.conf import settings
+        return getattr(settings, 'SITE_URL', 'localhost').replace('https://', '').replace('http://', '')
 
 
 class Domain(models.Model):

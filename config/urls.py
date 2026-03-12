@@ -8,7 +8,7 @@ from django.urls import path, re_path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-# Import views for public/website pages
+# Import views
 from modules.website import views as website_views
 from modules.integrations import views as integrations_views
 
@@ -16,23 +16,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # ========================
-    # PUBLIC/WEBSITE ROUTES
+    # SYSTEM ROUTES
     # ========================
-    path('', website_views.landing, name='landing'),
-    path('pricing/', website_views.pricing, name='pricing'),
     path('health/', website_views.health, name='health'),
-    path('features/', website_views.features, name='features'),
-    path('blog/', website_views.blog, name='blog'),
-    path('blog/<str:slug>/', website_views.blog_post, name='blog_post'),
-    path('docs/', website_views.docs, name='docs'),
-    re_path(r'^docs/(?P<slug>[\w/-]+)/$', website_views.docs_page, name='docs_page'),
-    path('contact/', website_views.contact, name='contact'),
-    path('privacy/', website_views.privacy, name='privacy'),
-    path('terms/', website_views.terms, name='terms'),
-    path('register/', website_views.register, name='register'),
-    path('registration-success/', website_views.registration_success, name='registration_success'),
-    path('verify-email/', website_views.verify_email, name='verify_email'),
-    path('verification-pending/', website_views.verification_pending, name='verification_pending'),
+    
+    # Onboarding (first-time setup)
+    path('onboarding/', website_views.onboarding, name='onboarding'),
     
     # OAuth callbacks
     path('api/integrations/slack/callback/', integrations_views.slack_oauth_callback, name='slack_oauth_callback'),

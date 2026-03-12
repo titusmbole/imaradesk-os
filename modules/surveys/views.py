@@ -924,8 +924,7 @@ def api_send_test_survey(request, survey_id):
         )
         
         # Build survey URL
-        from django.db import connection
-        tenant_domain = connection.tenant.domain_url if hasattr(connection, 'tenant') else request.get_host()
+        tenant_domain = request.get_host()
         protocol = 'https' if request.is_secure() else 'http'
         survey_url = f"{protocol}://{tenant_domain}/survey/{invitation.token}/"
         

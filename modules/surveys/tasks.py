@@ -143,29 +143,24 @@ def _send_survey_email(invitation, schema_name=None):
     from shared.utilities.Mailer import Mailer
     from django.conf import settings
     from shared.models import Client, Domain
-    from django.db import connection
     
     try:
         mailer = Mailer()
         
         # Build survey URL using tenant domain
-        # Get schema_name from parameter or current connection
-        if not schema_name:
-            schema_name = connection.schema_name
+        # Get the current tenant
+        tenant = Client.get_current()
         
         # Get tenant's primary domain
         try:
-            tenant = Client.objects.get(schema_name=schema_name)
             primary_domain = Domain.objects.filter(tenant=tenant, is_primary=True).first()
             if primary_domain:
                 tenant_domain = primary_domain.domain
             else:
-                # Fallback: construct from schema_name and PRIMARY_DOMAIN
-                primary_domain_setting = getattr(settings, 'PRIMARY_DOMAIN', '127.0.0.1:8000')
-                tenant_domain = f"{schema_name}.{primary_domain_setting}"
-        except Client.DoesNotExist:
-            primary_domain_setting = getattr(settings, 'PRIMARY_DOMAIN', '127.0.0.1:8000')
-            tenant_domain = f"{schema_name}.{primary_domain_setting}"
+                # Fallback: use SITE_URL from settings
+                tenant_domain = getattr(settings, 'SITE_URL', '127.0.0.1:8000').replace('https://', '').replace('http://', '')
+        except Exception:
+            tenant_domain = getattr(settings, 'SITE_URL', '127.0.0.1:8000').replace('https://', '').replace('http://', '')
         
         # Determine protocol (use HTTPS in production)
         use_ssl = getattr(settings, 'USE_SSL', False) or getattr(settings, 'SECURE_SSL_REDIRECT', False)

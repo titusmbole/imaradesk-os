@@ -14,7 +14,6 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from django.db import connection
 from inertia import inertia
 
 logger = logging.getLogger(__name__)
@@ -89,7 +88,7 @@ def teams_oauth_config(request):
             'return_url': '/settings/integrations/teams/',
             'user_domain': user_domain,
             'subdomain': subdomain,
-            'schema': connection.schema_name,
+            'schema': 'default',
             'host': current_host,
             'protocol': current_protocol,
         }
@@ -139,7 +138,7 @@ def teams_oauth_connect(request):
             'return_url': '/settings/integrations/teams/',
             'user_domain': user_domain,
             'subdomain': subdomain,
-            'schema': connection.schema_name,
+            'schema': 'default',
             'host': current_host,
             'protocol': current_protocol,
         }
@@ -174,7 +173,7 @@ def teams_oauth_callback(request):
     try:
         host = request.get_host()
         protocol = 'https' if request.is_secure() else 'http'
-        tenant_schema = connection.schema_name
+        tenant_schema = 'default'
 
         code = request.GET.get('code')
         state = request.GET.get('state')

@@ -138,11 +138,12 @@ def send_comment_notification_task(self, schema_name, ticket_id, comment_id, not
                     )
                 elif ticket.is_guest_ticket and ticket.guest_email:
                     from django.conf import settings as django_settings
-                    from django.db import connection
+                    from shared.models import Client
                     
-                    # Get company name from current tenant
+                    # Get company name
                     try:
-                        company_name = connection.tenant.name if hasattr(connection, 'tenant') else 'Support Team'
+                        org = Client.get_current()
+                        company_name = org.name if org else 'Support Team'
                     except Exception:
                         company_name = 'Support Team'
                     
@@ -448,7 +449,9 @@ def send_survey_to_ticket_caller_task(self, schema_name, ticket_id, survey_id=No
             
             # Get company name
             try:
-                company_name = connection.tenant.name if hasattr(connection, 'tenant') else 'Support Team'
+                from shared.models import Client
+                org = Client.get_current()
+                company_name = org.name if org else 'Support Team'
             except Exception:
                 company_name = 'Support Team'
             

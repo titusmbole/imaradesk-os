@@ -11,7 +11,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from django.db import connection
 from inertia import inertia
 
 logger = logging.getLogger(__name__)
@@ -107,7 +106,7 @@ def slack_oauth_callback(request):
     try:
         host = request.get_host()
         protocol = 'https' if request.is_secure() else 'http'
-        tenant_schema = connection.schema_name
+        tenant_schema = 'default'
 
         code = request.GET.get("code")
         state = request.GET.get("state")

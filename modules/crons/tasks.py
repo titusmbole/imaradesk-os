@@ -395,10 +395,11 @@ def _get_business_context():
         dict with company_name, base_url
     """
     from django.conf import settings
-    from django.db import connection
+    from shared.models import Client
     
     try:
-        company_name = connection.tenant.name if hasattr(connection, 'tenant') else 'Support'
+        org = Client.get_current()
+        company_name = org.name if org else 'Support'
     except Exception:
         company_name = 'Support'
     

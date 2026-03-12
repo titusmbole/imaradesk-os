@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Head, useForm, Link } from '@inertiajs/react'
 import toast from 'react-hot-toast'
 import AuthLayout from '../components/AuthLayout'
-import loginIllustration from '../../site/assets/illustrations/login.jpg'
 
 export default function Login({ errors: serverErrors = {}, next = '' }) {
   const [showPassword, setShowPassword] = useState(false)
@@ -48,7 +47,6 @@ export default function Login({ errors: serverErrors = {}, next = '' }) {
     <AuthLayout
       title="Welcome Back to ImaraDesk"
       subtitle="Access your helpdesk dashboard and manage support tickets with ease"
-      illustration={loginIllustration}
       features={[
         'Manage all your support tickets in one place',
         'Real-time analytics and reporting',

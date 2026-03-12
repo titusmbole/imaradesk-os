@@ -1,7 +1,6 @@
 import React from 'react'
 import { Head } from '@inertiajs/react'
 import AuthLayout from '../components/AuthLayout'
-import successIllustration from '../../site/assets/illustrations/success.jpg'
 
 export default function RegistrationSuccess({ email, workspace_name, subdomain, login_url }) {
   const handleLoginRedirect = () => {
@@ -12,7 +11,6 @@ export default function RegistrationSuccess({ email, workspace_name, subdomain, 
     <AuthLayout
       title="🎉 Welcome to ImaraDesk!"
       subtitle="Your workspace has been created successfully. Start managing your support tickets with ease."
-      illustration={successIllustration}
       features={[
         'Check your email for login credentials',
         'Sign in to access your workspace',

@@ -48,15 +48,9 @@ axios.interceptors.request.use(config => {
 
 createInertiaApp({
   resolve: name => {
-    // Load pages from either site or app directories
-    const sitePages = import.meta.glob('./site/Pages/**/*.jsx', { eager: true })
+    // Load pages from app directory
     const appPages = import.meta.glob('./app/Pages/**/*.jsx', { eager: true })
-    
-    // Try site pages first, then app pages
-    const sitePage = sitePages[`./site/Pages/${name}.jsx`]
-    const appPage = appPages[`./app/Pages/${name}.jsx`]
-    
-    return sitePage || appPage
+    return appPages[`./app/Pages/${name}.jsx`]
   },
   setup({ el, App, props }) {
     createRoot(el).render(

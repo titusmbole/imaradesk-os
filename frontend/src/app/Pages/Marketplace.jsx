@@ -5,6 +5,18 @@ import AppShell from '../components/AppShell'
 import SettingsSidenav from '../components/SettingsSidenav'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { THEME, COLORS } from '../constants/theme'
+import { Globe, BookOpen, Package } from 'lucide-react'
+
+// Map icon names to Lucide components
+const iconMap = {
+  'globe': Globe,
+  'book-open': BookOpen,
+}
+
+const AppIcon = ({ iconName, className = "w-6 h-6" }) => {
+  const IconComponent = iconMap[iconName] || Package
+  return <IconComponent className={className} />
+}
 
 export default function Marketplace({ apps = [] }) {
   const [sidenavOpen, setSidenavOpen] = useState(true)
@@ -181,7 +193,7 @@ export default function Marketplace({ apps = [] }) {
                 <div className="flex-1">
                   <h3 className="font-semibold text-blue-900 mb-1">💡 Extend Your Ticketing System</h3>
                   <p className="text-sm text-blue-800">
-                    Discover powerful apps to enhance ImaraDesk. All paid apps include a <strong>14-day free trial</strong> - no credit card required!
+                    Discover powerful apps to enhance ImaraDesk.
                   </p>
                 </div>
               </div>
@@ -359,8 +371,8 @@ function AppCard({ app, onInstall, onUninstall }) {
     <div className={`bg-white border rounded-lg p-5 hover:shadow-lg transition-shadow duration-200 ${isTrialExpired ? 'border-red-200' : 'border-gray-200'}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl" style={{ backgroundColor: '#f0f9ff' }}>
-            {app.icon}
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#f0f9ff' }}>
+            <AppIcon iconName={app.icon} className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">{app.name}</h3>
@@ -399,9 +411,6 @@ function AppCard({ app, onInstall, onUninstall }) {
               <span className="text-sm text-gray-500">/mo</span>
             </div>
           )}
-          <p className="text-xs text-gray-400 mt-0.5">
-            {app.install_count.toLocaleString()} installs
-          </p>
         </div>
 
         <button
