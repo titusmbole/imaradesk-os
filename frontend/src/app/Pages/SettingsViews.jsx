@@ -14,7 +14,6 @@ export default function SettingsViews({ views = {}, currentType = 'TICKET' }) {
 
   const viewTypes = [
     { id: 'TICKET', label: 'Ticket Views', icon: '📋' },
-    { id: 'TASK', label: 'Task Views', icon: '✅' },
     { id: 'KB', label: 'KB Views', icon: '📚' },
   ]
 

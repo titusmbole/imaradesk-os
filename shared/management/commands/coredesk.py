@@ -34,11 +34,6 @@ class Command(BaseCommand):
             help='Initialize default views for tickets, tasks, and KB',
         )
         parser.add_argument(
-            '--seed-integrations',
-            action='store_true',
-            help='Seed integrations from enum to database',
-        )
-        parser.add_argument(
             '--seed-assets',
             action='store_true',
             help='Seed default asset categories, locations, and vendors',
@@ -60,7 +55,6 @@ class Command(BaseCommand):
             self.seed_marketplace_apps()
             self.seed_email_templates(reseed=False)
             self.init_views()
-            self.seed_integrations()
             self.seed_assets()
             self.stdout.write(self.style.SUCCESS('\n=== Initialization Complete ==='))
             return
@@ -77,9 +71,6 @@ class Command(BaseCommand):
         
         if options.get('init_views'):
             self.init_views()
-        
-        if options.get('seed_integrations'):
-            self.seed_integrations()
 
         if options.get('seed_assets'):
             self.seed_assets()
@@ -182,7 +173,7 @@ class Command(BaseCommand):
             ))
     
     def init_views(self):
-        """Initialize default views for tickets, tasks, and KB."""
+        """Initialize default views for tickets and KB."""
         from modules.settings.models import SettingsView
         
         self.stdout.write(self.style.SUCCESS('\n--- Initializing Views ---'))
@@ -203,16 +194,6 @@ class Command(BaseCommand):
             {'type': 'TICKET', 'view_id': 'pending', 'label': 'Pending tickets', 'description': 'Tickets in pending status', 'order': 120},
             {'type': 'TICKET', 'view_id': 'recently_solved', 'label': 'Recently solved tickets', 'description': 'Tickets solved in the last 7 days', 'order': 130},
             {'type': 'TICKET', 'view_id': 'unsolved_in_groups', 'label': 'Unsolved tickets in your groups', 'description': 'Unsolved tickets assigned to your groups', 'order': 140},
-            # TASK VIEWS
-            {'type': 'TASK', 'view_id': 'all', 'label': 'All Tasks', 'description': 'View all tasks', 'order': 10, 'is_default': True},
-            {'type': 'TASK', 'view_id': 'my_tasks', 'label': 'My Tasks', 'description': 'Tasks assigned to you', 'order': 20},
-            {'type': 'TASK', 'view_id': 'created_by_me', 'label': 'Created by Me', 'description': 'Tasks you have created', 'order': 30},
-            {'type': 'TASK', 'view_id': 'watching', 'label': 'Watching', 'description': 'Tasks you are watching', 'order': 40},
-            {'type': 'TASK', 'view_id': 'todo', 'label': 'To Do', 'description': 'Tasks in to-do status', 'order': 50},
-            {'type': 'TASK', 'view_id': 'in_progress', 'label': 'In Progress', 'description': 'Tasks currently in progress', 'order': 60},
-            {'type': 'TASK', 'view_id': 'review', 'label': 'In Review', 'description': 'Tasks under review', 'order': 70},
-            {'type': 'TASK', 'view_id': 'done', 'label': 'Done', 'description': 'Completed tasks', 'order': 80},
-            {'type': 'TASK', 'view_id': 'high_priority', 'label': 'High Priority', 'description': 'High and urgent priority tasks', 'order': 90},
             # KB VIEWS
             {'type': 'KB', 'view_id': 'all', 'label': 'All Articles', 'description': 'View all KB articles', 'order': 10, 'is_default': True},
             {'type': 'KB', 'view_id': 'published', 'label': 'Published', 'description': 'Published KB articles', 'order': 20},
@@ -242,61 +223,6 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS(
             f'  ✓ Created: {created_count}, Updated: {updated_count}'
-        ))
-    
-    def seed_integrations(self):
-        """Seed integrations from enum to database."""
-        from modules.settings.models import SettingsIntegrations
-        from shared.utilities.enums.Integrations import IntegrationsRegistry
-        
-        self.stdout.write(self.style.SUCCESS('\n--- Seeding Integrations ---'))
-        
-        enum_integrations = IntegrationsRegistry.get_all_integrations()
-        enum_names = {integration['name'] for integration in enum_integrations}
-        
-        if not enum_integrations:
-            self.stdout.write(self.style.WARNING('  No integrations found in enum registry.'))
-            return
-        
-        created_count = 0
-        updated_count = 0
-        deleted_count = 0
-        
-        # Delete integrations no longer in enum
-        for db_integration in SettingsIntegrations.objects.all():
-            if db_integration.name not in enum_names:
-                db_integration.delete()
-                deleted_count += 1
-        
-        # Create or update from enum
-        for idx, integration_data in enumerate(enum_integrations):
-            existing = SettingsIntegrations.objects.filter(name=integration_data['name']).first()
-            
-            if existing:
-                existing.icon = integration_data['icon']
-                existing.description = integration_data['description']
-                existing.color = integration_data['color']
-                existing.integration_type = integration_data['type']
-                existing.webhook_url = integration_data.get('webhook_url')
-                existing.order = idx + 1
-                existing.status = integration_data['status']
-                existing.save()
-                updated_count += 1
-            else:
-                SettingsIntegrations.objects.create(
-                    name=integration_data['name'],
-                    icon=integration_data['icon'],
-                    description=integration_data['description'],
-                    status=integration_data['status'],
-                    color=integration_data['color'],
-                    integration_type=integration_data['type'],
-                    webhook_url=integration_data.get('webhook_url'),
-                    order=idx + 1
-                )
-                created_count += 1
-        
-        self.stdout.write(self.style.SUCCESS(
-            f'  ✓ Created: {created_count}, Updated: {updated_count}, Deleted: {deleted_count}'
         ))
 
     def seed_assets(self):

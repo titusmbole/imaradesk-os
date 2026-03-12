@@ -294,35 +294,6 @@ def _seed_tenant_data(schema_name, workspace_name, registration_data):
         except Exception as e:
             print(f"✗ Failed to seed default views: {e}")
         
-        # Seed integrations for the new tenant with all unconnected
-        try:
-            from modules.settings.models import SettingsIntegrations
-            from shared.utilities.enums.Integrations import IntegrationsRegistry
-            
-            integration_count = SettingsIntegrations.objects.count()
-            if integration_count == 0:
-                enum_integrations = IntegrationsRegistry.get_all_integrations()
-                created_count = 0
-                
-                for idx, integration_data in enumerate(enum_integrations):
-                    SettingsIntegrations.objects.create(
-                        name=integration_data['name'],
-                        icon=integration_data['icon'],
-                        description=integration_data['description'],
-                        status=integration_data['status'],
-                        color=integration_data['color'],
-                        integration_type=integration_data['type'],
-                        webhook_url=integration_data.get('webhook_url'),
-                        order=idx + 1,
-                    )
-                    created_count += 1
-                
-                print(f"✓ Seeded {created_count} integrations for tenant: {workspace_name}")
-            else:
-                print(f"⊘ Integrations already exist ({integration_count} integrations) - skipping")
-        except Exception as e:
-            print(f"✗ Failed to seed integrations: {e}")
-
         # Seed default asset data for the new tenant
         try:
             from modules.assets.models import AssetCategory, Location, Vendor

@@ -18,28 +18,6 @@ urlpatterns = [
     path('settings/security/2fa/email/disable/', views.disable_email_2fa, name='disable_email_2fa'),
     path('settings/security/2fa/authenticator/disable/', views.disable_authenticator_2fa, name='disable_authenticator_2fa'),
     
-    path('settings/custom-domains/', views.custom_domains, name='custom_domains'),
-    
-    # Custom Domain API
-    path('api/settings/domains/add/', views.api_add_custom_domain, name='api_add_custom_domain'),
-    path('api/settings/domains/<int:domain_id>/verify/', views.api_verify_domain_dns, name='api_verify_domain_dns'),
-    path('api/settings/domains/<int:domain_id>/delete/', views.api_delete_custom_domain, name='api_delete_custom_domain'),
-    path('api/settings/domains/<int:domain_id>/set-primary/', views.api_set_primary_domain, name='api_set_primary_domain'),
-    path('api/settings/domains/<int:domain_id>/dns-records/', views.api_get_domain_dns_records, name='api_get_domain_dns_records'),
-    path('api/settings/domains/<int:domain_id>/provision-ssl/', views.api_provision_ssl, name='api_provision_ssl'),
-    path('api/settings/domains/<int:domain_id>/check-ssl/', views.api_check_ssl_status, name='api_check_ssl_status'),
-    
-    path('settings/integrations/', views.integrations_settings, name='integrations_settings'),
-    
-    # Slack Integration
-    path('api/integrations/slack/connect/', views.slack_oauth_start, name='slack_oauth_start'),
-    path('api/integrations/slack/callback/', views.slack_oauth_callback, name='slack_oauth_callback'),
-    path('api/integrations/slack/disconnect/', views.slack_disconnect, name='slack_disconnect'),
-    path('api/integrations/slack/status/', views.slack_status, name='slack_status'),
-    path('api/integrations/slack/channels/', views.slack_channels, name='slack_channels'),
-    path('api/integrations/slack/settings/', views.slack_update_settings, name='slack_update_settings'),
-    path('api/integrations/slack/test/', views.slack_test_message, name='slack_test_message'),
-    
     # Team section
     path('settings/team/users/', views.team_users, name='team_users'),
     path('settings/team/users/add/', views.team_user_add, name='team_user_add'),
@@ -65,8 +43,6 @@ urlpatterns = [
     path('settings/emails/templates/<int:template_id>/edit/', views.edit_email_template, name='edit_email_template'),
     path('settings/emails/templates/<int:template_id>/update/', views.update_email_template, name='update_email_template'),
     path('settings/emails/templates/<int:template_id>/test/', views.test_email_template, name='test_email_template'),
-    path('settings/emails/smtp/', views.emails_smtp, name='emails_smtp'),
-    path('settings/emails/automation/', views.emails_automation, name='emails_automation'),
     # Marketplace
     path('settings/marketplace/', views.marketplace, name='marketplace'),
     path('settings/marketplace/installed/', views.installed_apps, name='installed_apps'),
@@ -77,8 +53,6 @@ urlpatterns = [
     path('settings/views/<int:view_id>/toggle/', views.toggle_view, name='toggle_view'),
     path('settings/views/<int:view_id>/set-default/', views.set_default_view, name='set_default_view'),
     path('settings/views/reorder/', views.reorder_views, name='reorder_views'),
-    # Billing
-    path('settings/billing/', views.billing, name='billing'),
     # SLA section
     path('settings/sla/policies/', views.sla_policies, name='sla_policies'),
     path('settings/sla/policies/add/', views.sla_policy_add, name='sla_policy_add'),

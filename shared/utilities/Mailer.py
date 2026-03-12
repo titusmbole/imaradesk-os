@@ -15,36 +15,9 @@ class Mailer:
                 SMTP connection,
                 from_email string
                 )
-            Priority:
-            1. Business-specific SMTP settings from the database.
-            2. Django default EMAIL_* settings and DEFAULT_FROM_NAME.
+            Uses Django default EMAIL_* settings and DEFAULT_FROM_NAME.
         """
-        # Try to get tenant-specific SMTP settings
-        try:
-            from modules.settings.models import SMTP
-            smtp = SMTP.objects.first()
-            if smtp:
-                try:
-                    connection = get_connection(
-                        host=smtp.host,
-                        port=smtp.port,
-                        username=smtp.username,
-                        password=smtp.password,
-                        use_tls=smtp.use_tls,
-                        use_ssl=smtp.use_ssl
-                    )
-                    from_email = (
-                        f"{smtp.sender_name} <{smtp.default_from_email}>"
-                        if smtp.sender_name else smtp.default_from_email
-                    )
-                    return connection, from_email
-                except Exception as e:
-                    logger.warning(f"[Mailer] Failed to use custom SMTP config: {e}")
-        except Exception as e:
-            # Table doesn't exist (e.g., public schema) - fall back to Django settings
-            logger.debug(f"[Mailer] Tenant SMTP not available, using Django settings: {e}")
-
-        # Fallback to default Django settings
+        # Use default Django settings
         try:
             connection = get_connection(
                 host=settings.EMAIL_HOST,
@@ -59,7 +32,7 @@ class Mailer:
             from_email = f"{default_name} <{default_email}>" if default_name else default_email
             return connection, from_email
         except Exception as e:
-            logger.error(f"[Mailer] Failed to load fallback SMTP config: {e}")
+            logger.error(f"[Mailer] Failed to load SMTP config: {e}")
             return get_connection(), settings.DEFAULT_FROM_EMAIL
     
     def get_template(self, template_type: str):

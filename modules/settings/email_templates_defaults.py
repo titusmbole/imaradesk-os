@@ -4,6 +4,9 @@ Templates use plain text body that will be wrapped in the base HTML template.
 """
 
 DEFAULT_EMAIL_TEMPLATES = [
+    # =============================================================================
+    # Ticket Templates
+    # =============================================================================
     {
         'name': 'Ticket Created',
         'template_type': 'ticket_created',
@@ -79,110 +82,6 @@ Thank you,
             'ticket_number': 'Ticket number',
             'ticket_subject': 'Ticket subject',
             'agent_name': 'Agent name',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Welcome Email',
-        'template_type': 'welcome_user',
-        'subject': 'Welcome to {{company_name}}',
-        'body_text': '''Hi {{user_name}},
-
-Welcome! Your account has been created successfully.
-
-Email: {{user_email}}
-Username: {{username}}
-
-Login: {{login_url}}
-
-Best regards,
-{{company_name}} Team''',
-        'status': 'active',
-        'available_variables': {
-            'user_name': 'User full name',
-            'user_email': 'User email address',
-            'username': 'Username',
-            'login_url': 'Login URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Password Reset',
-        'template_type': 'password_reset',
-        'subject': 'Reset Your Password',
-        'body_text': '''Hi {{user_name}},
-
-We received a request to reset your password. Use the link below to create a new password:
-
-{{reset_url}}
-
-This link will expire in {{expiry_hours}} hours.
-
-If you didn't request this, please ignore this email.
-
-{{company_name}}''',
-        'status': 'active',
-        'available_variables': {
-            'user_name': 'User full name',
-            'reset_url': 'Password reset URL',
-            'expiry_hours': 'Link expiry hours',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'SLA Breach Warning',
-        'template_type': 'sla_breach_warning',
-        'subject': 'SLA Breach Warning - Ticket #{{ticket_number}}',
-        'body_text': '''Hi {{agent_name}},
-
-A ticket is approaching SLA breach!
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Priority: {{ticket_priority}}
-Time Remaining: {{time_remaining}}
-
-
-{{company_name}} Support System''',
-        'status': 'active',
-        'available_variables': {
-            'agent_name': 'Agent name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'ticket_priority': 'Ticket priority',
-            'time_remaining': 'Time remaining before breach',
-            'ticket_url': 'Ticket URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'SLA Breached',
-        'template_type': 'sla_breached',
-        'subject': 'SLA Breached - Ticket #{{ticket_number}}',
-        'body_text': '''Hi {{agent_name}},
-
-A ticket has breached its SLA!
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Priority: {{ticket_priority}}
-SLA Policy: {{policy_name}}
-Overdue: {{overdue_time}}
-
-Please take immediate action to resolve this ticket.
-
-
-
-{{company_name}} Support System''',
-        'status': 'active',
-        'available_variables': {
-            'agent_name': 'Agent name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'ticket_priority': 'Ticket priority',
-            'policy_name': 'SLA policy name',
-            'overdue_time': 'How long overdue',
-            'ticket_url': 'Ticket URL',
             'company_name': 'Company name',
         }
     },
@@ -350,35 +249,6 @@ Message:
         }
     },
     {
-        'name': 'Overdue Ticket Alert',
-        'template_type': 'overdue_ticket_alert',
-        'subject': 'Overdue Ticket Alert - #{{ticket_number}}',
-        'body_text': '''Hi {{agent_name}},
-
-A ticket assigned to you is now overdue.
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Priority: {{ticket_priority}}
-Overdue By: {{overdue_time}}
-
-Please take immediate action.
-
-
-
-{{company_name}} Support System''',
-        'status': 'active',
-        'available_variables': {
-            'agent_name': 'Agent name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'ticket_priority': 'Ticket priority',
-            'overdue_time': 'Time overdue',
-            'ticket_url': 'Ticket URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
         'name': 'Ticket Transfer Alert',
         'template_type': 'ticket_transfer_alert',
         'subject': 'Ticket #{{ticket_number}} Transferred to You',
@@ -408,254 +278,98 @@ Transferred From: {{transferred_from}}
         }
     },
     {
-        'name': 'New Task Alert',
-        'template_type': 'new_task_alert',
-        'subject': 'New Task Assigned: {{task_title}}',
-        'body_text': '''Hi {{assignee_name}},
+        'name': 'Ticket Assigned to Group',
+        'template_type': 'ticket_group_assigned',
+        'subject': 'New Ticket Assigned to Your Group: #{{ticket_number}}',
+        'body_text': '''Hi {{agent_name}},
 
-A new task has been assigned to you.
-
-Task: {{task_title}}
-Due Date: {{due_date}}
-Priority: {{task_priority}}
-Assigned By: {{assigned_by}}
-
-View task: {{task_url}}
-
-{{company_name}}''',
-        'status': 'active',
-        'available_variables': {
-            'assignee_name': 'Assignee name',
-            'task_title': 'Task title',
-            'due_date': 'Due date',
-            'task_priority': 'Task priority',
-            'assigned_by': 'Person who assigned',
-            'task_url': 'Task URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Overdue Task Alert',
-        'template_type': 'overdue_task_alert',
-        'subject': 'Task Overdue: {{task_title}}',
-        'body_text': '''Hi {{assignee_name}},
-
-A task assigned to you is now overdue.
-
-Task: {{task_title}}
-Due Date: {{due_date}}
-Priority: {{task_priority}}
-Overdue By: {{overdue_time}}
-
-Please take immediate action.
-
-View task: {{task_url}}
-
-{{company_name}}''',
-        'status': 'active',
-        'available_variables': {
-            'assignee_name': 'Assignee name',
-            'task_title': 'Task title',
-            'due_date': 'Due date',
-            'task_priority': 'Task priority',
-            'overdue_time': 'Time overdue',
-            'task_url': 'Task URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Comment Added Notice',
-        'template_type': 'comment_add_notice',
-        'subject': 'New Comment on Ticket #{{ticket_number}}',
-        'body_text': '''Hi {{recipient_name}},
-
-A new comment has been added to a ticket.
+A new ticket has been assigned to your group.
 
 Ticket Number: #{{ticket_number}}
 Subject: {{ticket_subject}}
-Comment By: {{comment_by}}
-
-Comment:
-{{comment_content}}
-
-
-
-{{company_name}} Support Team''',
-        'status': 'active',
-        'available_variables': {
-            'recipient_name': 'Recipient name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'comment_by': 'Person who commented',
-            'comment_content': 'Comment content',
-            'ticket_url': 'Ticket URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'User Mentioned in Ticket',
-        'template_type': 'user_mentioned',
-        'subject': 'You were mentioned in Ticket #{{ticket_number}}',
-        'body_text': '''Hi {{mentioned_user}},
-
-You were mentioned in a ticket comment.
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Mentioned By: {{mentioned_by}}
-
-Message:
-{{mention_context}}
+Priority: {{ticket_priority}}
+Customer: {{customer_name}}
+Group: {{group_name}}
 
 
 
 {{company_name}} Support System''',
         'status': 'active',
         'available_variables': {
-            'mentioned_user': 'Mentioned user name',
+            'agent_name': 'Agent name',
             'ticket_number': 'Ticket number',
             'ticket_subject': 'Ticket subject',
-            'mentioned_by': 'Person who mentioned',
-            'mention_context': 'Mention context/message',
+            'ticket_priority': 'Ticket priority',
+            'customer_name': 'Customer name',
+            'group_name': 'Assignment group name',
+            'ticket_url': 'Ticket URL',
+            'company_name': 'Company name',
+        }
+    },
+    # =============================================================================
+    # SLA Templates
+    # =============================================================================
+    {
+        'name': 'SLA Breach Warning',
+        'template_type': 'sla_breach_warning',
+        'subject': 'SLA Breach Warning - Ticket #{{ticket_number}}',
+        'body_text': '''Hi {{agent_name}},
+
+A ticket is approaching SLA breach!
+
+Ticket Number: #{{ticket_number}}
+Subject: {{ticket_subject}}
+Priority: {{ticket_priority}}
+Time Remaining: {{time_remaining}}
+
+
+{{company_name}} Support System''',
+        'status': 'active',
+        'available_variables': {
+            'agent_name': 'Agent name',
+            'ticket_number': 'Ticket number',
+            'ticket_subject': 'Ticket subject',
+            'ticket_priority': 'Ticket priority',
+            'time_remaining': 'Time remaining before breach',
             'ticket_url': 'Ticket URL',
             'company_name': 'Company name',
         }
     },
     {
-        'name': 'Survey Invitation',
-        'template_type': 'survey_invitation',
-        'subject': 'We value your feedback - Ticket #{{ticket_number}}',
-        'body_text': '''Hi {{customer_name}},
+        'name': 'SLA Breached',
+        'template_type': 'sla_breached',
+        'subject': 'SLA Breached - Ticket #{{ticket_number}}',
+        'body_text': '''Hi {{agent_name}},
 
-Thank you for contacting our support team. We'd love to hear about your experience.
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-
-Please take a moment to share your feedback:
-{{survey_url}}
-
-Your feedback helps us improve our service.
-
-Thank you,
-{{company_name}} Support Team''',
-        'status': 'active',
-        'available_variables': {
-            'customer_name': 'Customer name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'survey_url': 'Survey URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Survey Reminder',
-        'template_type': 'survey_reminder',
-        'subject': 'Reminder: Share your feedback - Ticket #{{ticket_number}}',
-        'body_text': '''Hi {{customer_name}},
-
-We noticed you haven't completed the feedback survey for your recent support ticket.
+A ticket has breached its SLA!
 
 Ticket Number: #{{ticket_number}}
 Subject: {{ticket_subject}}
+Priority: {{ticket_priority}}
+SLA Policy: {{policy_name}}
+Overdue: {{overdue_time}}
 
-Your feedback is important to us:
-{{survey_url}}
+Please take immediate action to resolve this ticket.
 
-Thank you,
-{{company_name}} Support Team''',
+
+
+{{company_name}} Support System''',
         'status': 'active',
         'available_variables': {
-            'customer_name': 'Customer name',
+            'agent_name': 'Agent name',
             'ticket_number': 'Ticket number',
             'ticket_subject': 'Ticket subject',
-            'survey_url': 'Survey URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Ticket Status Changed',
-        'template_type': 'ticket_status_changed',
-        'subject': 'Ticket #{{ticket_number}} Status Updated to {{new_status}}',
-        'body_text': '''Hi {{customer_name}},
-
-The status of your ticket has been updated.
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Changed to: {{new_status}}
-
-
-{{company_name}} Support Team''',
-        'status': 'active',
-        'available_variables': {
-            'customer_name': 'Customer name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'old_status': 'Previous status',
-            'new_status': 'New status',
+            'ticket_priority': 'Ticket priority',
+            'policy_name': 'SLA policy name',
+            'overdue_time': 'How long overdue',
             'ticket_url': 'Ticket URL',
             'company_name': 'Company name',
         }
     },
     {
-        'name': 'Ticket Priority Changed',
-        'template_type': 'ticket_priority_changed',
-        'subject': 'Ticket #{{ticket_number}} Priority Updated to {{new_priority}}',
-        'body_text': '''Hi {{customer_name}},
-
-The priority of your ticket has been updated.
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Previous Priority: {{old_priority}}
-New Priority: {{new_priority}}
-
-
-
-{{company_name}} Support Team''',
-        'status': 'active',
-        'available_variables': {
-            'customer_name': 'Customer name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'old_priority': 'Previous priority',
-            'new_priority': 'New priority',
-            'ticket_url': 'Ticket URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Ticket Merged',
-        'template_type': 'ticket_merged',
-        'subject': 'Ticket #{{ticket_number}} Has Been Merged',
-        'body_text': '''Hi {{customer_name}},
-
-Your ticket has been merged with another related ticket for better handling.
-
-Original Ticket: #{{ticket_number}}
-Merged Into: #{{merged_ticket_number}}
-Subject: {{ticket_subject}}
-
-All communication will now continue on ticket #{{merged_ticket_number}}.
-
-View merged ticket: {{ticket_url}}
-
-{{company_name}} Support Team''',
-        'status': 'active',
-        'available_variables': {
-            'customer_name': 'Customer name',
-            'ticket_number': 'Original ticket number',
-            'merged_ticket_number': 'Merged ticket number',
-            'ticket_subject': 'Ticket subject',
-            'ticket_url': 'Ticket URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'SLA Escalation Notice',
-        'template_type': 'sla_escalation_notice',
-        'subject': 'SLA Escalation - Ticket #{{ticket_number}}',
+        'name': 'SLA Escalation Alert',
+        'template_type': 'sla_escalation_alert',
+        'subject': 'SLA Escalation - Ticket #{{ticket_number}} Requires Attention',
         'body_text': '''Hi {{escalation_contact}},
 
 A ticket has been escalated due to SLA breach.
@@ -681,35 +395,6 @@ This ticket requires immediate attention.
             'policy_name': 'SLA policy name',
             'breach_type': 'Type of SLA breach',
             'overdue_time': 'Time overdue',
-            'ticket_url': 'Ticket URL',
-            'company_name': 'Company name',
-        }
-    },
-    {
-        'name': 'Ticket Assigned to Group',
-        'template_type': 'ticket_group_assigned',
-        'subject': 'New Ticket Assigned to Your Group: #{{ticket_number}}',
-        'body_text': '''Hi {{agent_name}},
-
-A new ticket has been assigned to your group.
-
-Ticket Number: #{{ticket_number}}
-Subject: {{ticket_subject}}
-Priority: {{ticket_priority}}
-Customer: {{customer_name}}
-Group: {{group_name}}
-
-
-
-{{company_name}} Support System''',
-        'status': 'active',
-        'available_variables': {
-            'agent_name': 'Agent name',
-            'ticket_number': 'Ticket number',
-            'ticket_subject': 'Ticket subject',
-            'ticket_priority': 'Ticket priority',
-            'customer_name': 'Customer name',
-            'group_name': 'Assignment group name',
             'ticket_url': 'Ticket URL',
             'company_name': 'Company name',
         }

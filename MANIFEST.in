@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+recursive-include ticket/templates *
+recursive-include ticket/static *
+recursive-include users/templates *
+recursive-include users/static *
+recursive-include ticket/management *
+recursive-include users/management *

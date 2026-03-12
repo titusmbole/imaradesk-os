@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import App, InstalledApp, KnowledgeBaseSettings, SecuritySettings, SecuritySettings, SettingsIntegrations
+from .models import App, InstalledApp, KnowledgeBaseSettings, SecuritySettings, SecuritySettings
 
 
 @admin.register(App)
@@ -104,30 +104,3 @@ class KnowledgeBaseSettingsAdmin(admin.ModelAdmin):
         # Don't allow deletion
         return False
 
-
-@admin.register(SettingsIntegrations)
-class SettingsIntegrationsAdmin(admin.ModelAdmin):
-    list_display = ['name', 'integration_type', 'status', 'is_active', 'order', 'created_at']
-    list_filter = ['integration_type', 'status', 'is_active']
-    search_fields = ['name', 'description']
-    readonly_fields = ['created_at', 'updated_at']
-    ordering = ['order', 'name']
-    
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'icon', 'description', 'integration_type')
-        }),
-        ('Configuration', {
-            'fields': ('status', 'color', 'webhook_url', 'config_settings')
-        }),
-        ('Display Settings', {
-            'fields': ('is_active', 'order')
-        }),
-        ('Metadata', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related()
