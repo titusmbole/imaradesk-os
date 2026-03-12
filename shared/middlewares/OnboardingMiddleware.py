@@ -48,6 +48,7 @@ class OnboardingMiddleware:
         """Check if at least one organization exists in the database."""
         try:
             from shared.models import Client
+            print(f"This =======================> {Client.objects.exists()}")
             return Client.objects.exists()
         except Exception:
             # If there's a database error, assume onboarding is needed
